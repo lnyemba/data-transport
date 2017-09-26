@@ -646,7 +646,7 @@ class s3 :
 		"""
 		try:
 			self.s3 = boto.connect_s3(args['access_key'],args['secret_key'])
-			self.bucket = self.s3.get_bucket(args['bucket']) if 'bucket' in args else None
+			self.bucket = self.s3.get_bucket(args['bucket'].strip(),validate=False) if 'bucket' in args else None
 			# self.path = args['path']
 			self.filter = args['filter'] if 'filter' in args else None
 			self.filename = args['file'] if 'file' in args else None
@@ -747,9 +747,11 @@ class DataSource:
 		return self.Input.read(size)
 	def write(self,**args):
 		self.Output.write(**args)
-# conf = json.loads(open('conf.json').read())
-# x = s3Reader( dict(conf,**{'bucket':'com.phi.sample.data','file':'Sample-Spreadsheet-5000-rows.csv'}))
-
+conf = json.loads(open('config.json').read())
+#x = s3Reader( dict(conf,**{'bucket':'com.phi.sample.data','file':'Sample-Spreadsheet-5000-rows.csv'}))
+x = s3Reader(conf)
+print conf
+print x.bucket.get_all_keys()
 # r = x.read()
 # for item in r :
 # 	print item
