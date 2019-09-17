@@ -1,11 +1,22 @@
 # Introduction
 
-This project implements an abstraction of objects that can have access to a variety of data stores, implementing read/write functions associated and specific to the data-sources. The classes implement functionalities against :
+This project implements an abstraction of objects that can have access to a variety of data stores, implementing read/write with a simple interface against specific various data-sources. The supported data sources implement functionalities against :
 
     - Rabbitmq-server
     - Couchdb-server
+    - Mongodb-server
     - Http Session : {csv,tab,pipe,sql}
     - Disk{Reader|Writer} : csv, tab, pipe, sql on disk
+
+Such an interface is used to facilitate data transport in and out of a store for whatever an application may need (log, session management, ...)
+
+### Installation
+
+Within the virtual environment perform the following command:
+
+    pip install git+https://dev.the-phi.com/git/steve/data-transport.git
+
+Binaries and eggs will be provided later on
 
 
 ### Usage
