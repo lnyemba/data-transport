@@ -1,3 +1,10 @@
+"""
+Data Transport - 1.0
+Steve L. Nyemba, The Phi Technology LLC
+
+This file is a wrapper around rabbitmq server for reading and writing content to a queue (exchange)
+
+"""
 import pika
 from datetime import datetime
 import re

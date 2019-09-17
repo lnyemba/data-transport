@@ -1,3 +1,9 @@
+"""
+Data Transport - 1.0
+Steve L. Nyemba, The Phi Technology LLC
+
+This file is a wrapper around mongodb for reading/writing content against a mongodb server and executing views (mapreduce)
+"""
 from pymongo import MongoClient
 # from transport import Reader,Writer
 from common import Reader, Writer

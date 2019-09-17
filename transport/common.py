@@ -6,7 +6,7 @@ This module is designed to serve as a wrapper to a set of supported data stores 
     - couchdb
     - mongodb
     - Files (character delimited)
-    - Queues (RabbmitMq)
+    - Queues (Rabbmitmq)
     - Session (Flask)
     - s3
 The supported operations are read/write and providing meta data to the calling code

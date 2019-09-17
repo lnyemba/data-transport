@@ -1,3 +1,9 @@
+"""
+Data Transport - 1.0
+Steve L. Nyemba, The Phi Technology LLC
+
+This file is a wrapper around s3 bucket provided by AWS for reading and writing content
+"""
 from datetime import datetime
 import boto
 import botocore
