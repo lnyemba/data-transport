@@ -22,7 +22,7 @@ The configuration for the data-store is as follows :
 				username:<username>,
 				password:<password>,
 				dbname:<database>,
-				uid:<document id>
+				doc:<document id>
 			}
 		}
 	RabbitMQ:
@@ -36,7 +36,7 @@ The configuration for the data-store is as follows :
 			username:<username>,
 			password:<password>,
 			dbname:<database>,
-			uid:<document id>s
+			doc:<document id>s
 
 		}
 	}
@@ -46,11 +46,11 @@ import numpy as np
 import json
 import importlib 
 from common import Reader, Writer #, factory
-# import disk
-# import queue
-# import couch
-# import mongo
-# import s3
+import disk
+import queue
+import couch
+import mongo
+import s3
 class factory :
 	@staticmethod
 	def instance(**args):
@@ -68,12 +68,13 @@ class factory :
 			# @TODO: Make sure objects are serializable, be smart about them !!
 			#
 			aClassName = ''.join([source,'(**params)'])
-
+			
 
 		else:
 			
 			stream = json.dumps(params)
 			aClassName = ''.join([source,'(**',stream,')'])
+			
 		try:
 			anObject = eval( aClassName)
 			#setattr(anObject,'name',source)

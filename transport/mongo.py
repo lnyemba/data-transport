@@ -23,7 +23,7 @@ class Mongo :
         else:
             self.client = MongoClient()                    
         
-        self.uid    = args['uid']  #-- document identifier
+        self.uid    = args['doc']  #-- document identifier
         self.dbname = args['dbname']
         self.db = self.client[self.dbname]
         

@@ -13,12 +13,24 @@ This project implements an abstraction of objects that can have access to a vari
 The basic usage revolves around a factory class (to be a singleton)
 
     import transport
-    
-    p = {"uri":"https://your-server:5984","dbname":"mydatabase","doc":"doc_id"}
-    couchdb = transport.Factory.instance(type='CouchdbReader',args=p)
+    from transport import factory
+    #
+    # importing a mongo reader
+    args = {"host":"<host>:<port>","dbname":"<database>","doc":"<doc_id>",["username":"<username>","password":"<password>"]}
+    mreader = factory.instance(type='mongo.MonoReader',args=args)
+    #
+    # reading a document and executing a view
+    #
+    document    = mreader.read()
+    result      = mreader.view(name)
+    #
+    # importing a couchdb reader
+    args = {"url":"<http://host>:<port>","dbname":"<database>","doc":"<doc_id>","username":"<username>","password":"<password>"}
+    creader     = factory.instance(type='couch.CouchReader',args=args)
     
     #
-    # let's execute a view
+    # Reading a document and executing a view
     #
-    result = couchdb.view('view_name/function',key=value)
-    info   = couchdb.read()
+    document    = dreader.read()    
+    result      = couchdb.view(id='<design_doc_id>',view_name=<view_name',<key=value|keys=values>)
+    

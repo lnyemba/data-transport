@@ -10,17 +10,17 @@ import json
 from common import Reader,Writer
 class Couch:
 	"""
+	This class is a wrapper for read/write against couchdb. The class captures common operations for read/write.
 		@param	url		host & port reference
-		@param	uid		user id involved
-
+		@param	doc		user id involved
 		@param	dbname		database name (target)
 	"""
 	def __init__(self,**args):
 		url 		= args['url']
-		self.uid 	= args['uid']
+		self.uid 	= args['doc']
 		dbname		= args['dbname']
 		if 'username' not in args and 'password' not in args :
-			self.server 	= cloudant.CouchDB(url=url)
+			self.server 	= cloudant.CouchDB(None,None,url=url)
 		else:
 			self.server = cloudant.CouchDB(args['username'],args['password'],url=url)
 		self.server.connect()
@@ -56,10 +56,10 @@ class Couch:
 	
 	def view(self,**args):
 		"""
-			We are executing a view
-			:id	design document _design/xxxx (provide full name with _design prefix)
-			:view_name	name of the view i.e 
-			:key	key to be used to filter the content
+		The function will execute a view (provivded a user is authenticated)
+		:id	design 	document _design/xxxx (provide full name with _design prefix)
+		:view_name	name of the view i.e 
+		:key(s)		key(s) to be used to filter the content
 		"""
 		document = cloudant.design_document.DesignDocument(self.dbase,args['id'])
 		document.fetch()

@@ -10,12 +10,12 @@ class MessageQueue:
 	"""
 		This class hierarchy is designed to handle interactions with a queue server using pika framework (our tests are based on rabbitmq)
 		:host	
-		:uid	identifier of the exchange
+		:xid	identifier of the exchange
 		:qid	identifier of the queue
 	"""
 	def __init__(self,**params):
 		self.host= params['host']
-		self.uid = params['uid']
+		self.uid = params['xid']
 		self.qid = params['qid']
 	
 	def isready(self):
