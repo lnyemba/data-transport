@@ -65,8 +65,10 @@ class MongoWriter(Mongo,Writer):
     def write(self,**args):
         # document  = self.db[self.uid].find()
         collection = self.db[self.uid]
-        collection.update_one()
-        self.db[self.uid].insert_one(args['row'])
+        if type(args['row']) == list :
+            self.db[self.uid].insert_many(args['row'])
+        else:
+            self.db[self.uid].insert_one(args['row'])
     def set(self,document):
         collection = self.db[self.uid]
         if collection.count_document() > 0 :
