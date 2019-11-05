@@ -91,7 +91,7 @@ class factory :
 			anObject = eval( aClassName)
 			#setattr(anObject,'name',source)
 		except Exception as e:
-			print ['Error ',e]
+			print(['Error ',e])
 		return anObject
 
 # class Reader:

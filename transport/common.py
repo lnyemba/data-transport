@@ -39,7 +39,7 @@ class Reader:
 		"""
 		
 		m = {',':[],'\t':[],'|':[],'\x3A':[]} 
-		delim = m.keys()
+		delim = list(m.keys())
 		for row in sample:
 			for xchar in delim:
 				if row.split(xchar) > 1:	
@@ -53,9 +53,9 @@ class Reader:
 		# The delimiter with the smallest variance, provided the mean is greater than 1
 		# This would be troublesome if there many broken records sampled
 		#
-		m = {id: np.var(m[id]) for id in m.keys() if m[id] != [] and int(np.mean(m[id]))>1}
-		index = m.values().index( min(m.values()))
-		xchar = m.keys()[index]
+		m = {id: np.var(m[id]) for id in list(m.keys()) if m[id] != [] and int(np.mean(m[id]))>1}
+		index = list(m.values()).index( min(m.values()))
+		xchar = list(m.keys())[index]
 		
 		return xchar
 	def col_count(self,sample):
@@ -76,8 +76,8 @@ class Reader:
 				m[id] = 0
 			m[id] = m[id] + 1
 		
-		index = m.values().index( max(m.values()) )
-		ncols = int(m.keys()[index])
+		index = list(m.values()).index( max(m.values()) )
+		ncols = int(list(m.keys())[index])
 		
 		
 		return ncols;

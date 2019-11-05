@@ -175,7 +175,7 @@ class QueueReader(MessageQueue,Reader):
 		# We enabled the reader to be able to read from several queues (sequentially for now)
 		# The qid parameter will be an array of queues the reader will be reading from
 		#
-		if isinstance(self.qid,basestring) :
+		if isinstance(self.qid,str) :
 					self.qid = [self.qid]
 		for qid in self.qid:
 			self.init(qid)
