@@ -18,6 +18,6 @@ setup(
     use_2to3=True,
     long_description=read('README.md'),
     convert_2to3_doctests=['README.md'],
-    use_2to3_fixers=['your.fixers'],
+    #use_2to3_fixers=['your.fixers'],
     use_2to3_exclude_fixers=['lib2to3.fixes.fix_import'],
     )
