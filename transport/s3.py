@@ -8,9 +8,13 @@ from datetime import datetime
 import boto
 import botocore
 from smart_open import smart_open
-from common import Reader, Writer
+import sys
+if sys.version_info[0] > 2 :
+	from transport.common import Reader, Writer
+else:
+	from common import Reader, Writer
 import json
-from common import Reader, Writer
+
 
 class s3 :
 	"""

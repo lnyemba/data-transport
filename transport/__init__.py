@@ -45,12 +45,24 @@ __author__ = 'The Phi Technology'
 import numpy as np
 import json
 import importlib 
-from common import Reader, Writer #, factory
-import disk
-import queue
-import couch
-import mongo
-import s3
+import sys 
+
+if sys.version_info[0] > 2 : 
+    from transport.common import Reader, Writer #, factory
+    from transport import disk
+    from transport import queue as queue
+    from transport import couch as couch
+    from transport import mongo as mongo
+    from transport import s3 as s3
+else:
+    from common import Reader, Writer #, factory
+    import disk
+    import queue
+    import couch
+    import mongo
+    import s3
+
+
 class factory :
 	@staticmethod
 	def instance(**args):
@@ -78,7 +90,7 @@ class factory :
 		try:
 			anObject = eval( aClassName)
 			#setattr(anObject,'name',source)
-		except Exception,e:
+		except Exception as e:
 			print ['Error ',e]
 		return anObject
 

@@ -6,7 +6,11 @@ This file is a wrapper around mongodb for reading/writing content against a mong
 """
 from pymongo import MongoClient
 # from transport import Reader,Writer
-from common import Reader, Writer
+import sys
+if sys.version_info[0] > 2 :
+	from transport.common import Reader, Writer
+else:
+	from common import Reader, Writer
 import json
 class Mongo :
     """

@@ -10,7 +10,11 @@ from datetime import datetime
 import re
 import json
 import os
-from common import Reader, Writer
+import sys
+if sys.version_info[0] > 2 :
+	from transport.common import Reader, Writer
+else:
+	from common import Reader, Writer
 import json
 
 class MessageQueue:
@@ -31,9 +35,9 @@ class MessageQueue:
 		self.close()
 		return resp
 	def close(self):
-            if self.connection.is_closed == False :
-		self.channel.close()
-		self.connection.close()
+		if self.connection.is_closed == False :
+			self.channel.close()
+			self.connection.close()
 
 class QueueWriter(MessageQueue,Writer):
 	"""

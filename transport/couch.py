@@ -7,7 +7,11 @@ This file is a wrapper around couchdb using IBM Cloudant SDK that has an interfa
 """
 import cloudant
 import json
-from common import Reader,Writer
+import sys
+if sys.version_info[0] > 2 :
+	from transport.common import Reader, Writer
+else:
+	from common import Reader, Writer
 class Couch:
 	"""
 	This class is a wrapper for read/write against couchdb. The class captures common operations for read/write.
