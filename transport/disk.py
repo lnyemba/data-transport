@@ -20,8 +20,8 @@ class DiskReader(Reader) :
 		return os.path.exists(self.path) 
 	def read(self,size=-1):
 		"""
-			This function reads the rows from a designated location on disk
-			@param	size	number of rows to be read, -1 suggests all rows
+		This function reads the rows from a designated location on disk
+		@param	size	number of rows to be read, -1 suggests all rows
 		"""
 
 		f = open(self.path,'rU') 
@@ -47,8 +47,8 @@ class DiskWriter(Writer):
 			self.name = params['name'];
 		else:
 			self.name = 'out.log'
-		if os.path.exists(self.path) == False:
-			os.mkdir(self.path)
+		# if os.path.exists(self.path) == False:
+		# 	os.mkdir(self.path)
 
 	def isready(self):
 		"""
@@ -66,20 +66,20 @@ class DiskWriter(Writer):
 			@param	row	row to be written
 		"""
 
-		label 	= params['label']
+		# label 	= params['label']
 		row 	= params['row']
-		xchar = None
-		if 'xchar' is not None:
-			xchar 	= params['xchar']
+		# xchar = None
+		# if 'xchar' is not None:
+		# 	xchar 	= params['xchar']
 		#path = ''.join([self.path,os.sep,label])
-		path = ''.join([self.path,os.sep,self.name])
+		# path = ''.join([self.path,os.sep,self.name])
 		#if os.path.exists(path) == False:
 		#	os.mkdir(path) ;
-		path = ''.join([path,os.sep,self.name]) 
-		f = open(path,'a')
-                if isinstance(row,object):
-                    row = json.dumps(row)
+		# path = ''.join([path,os.sep,self.name]) 
+		f = open(self.path,'a')
+		if isinstance(row,object):
+			row = json.dumps(row)
 		#row = self.format(row,xchar);
-		f.write(row)
+		f.write(row+"\n")
 		f.close()
 		
