@@ -46,7 +46,7 @@ class DiskWriter(Writer):
 		if 'name' in params:
 			self.name = params['name'];
 		else:
-			self.name = None
+			self.name = 'out.log'
 		if os.path.exists(self.path) == False:
 			os.mkdir(self.path)
 
@@ -71,12 +71,15 @@ class DiskWriter(Writer):
 		xchar = None
 		if 'xchar' is not None:
 			xchar 	= params['xchar']
-		path = ''.join([self.path,os.sep,label])
-		if os.path.exists(path) == False:
-			os.mkdir(path) ;
+		#path = ''.join([self.path,os.sep,label])
+		path = ''.join([self.path,os.sep,self.name])
+		#if os.path.exists(path) == False:
+		#	os.mkdir(path) ;
 		path = ''.join([path,os.sep,self.name]) 
 		f = open(path,'a')
-		row = self.format(row,xchar);
+                if isinstance(row,object):
+                    row = json.dumps(row)
+		#row = self.format(row,xchar);
 		f.write(row)
 		f.close()
 		
