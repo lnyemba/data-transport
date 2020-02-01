@@ -14,7 +14,8 @@ Requirements :
 	pymongo
 	boto
 	couldant
-
+@TODO:
+	Enable read/writing to multiple reads/writes
 """
 __author__ = 'The Phi Technology'
 import numpy as np
@@ -22,107 +23,72 @@ import json
 import importlib 
 # import couch
 # import mongo
-class Reader:
+class IO:
+	def init(self,**args):
+		"""
+		This function enables attributes to be changed at runtime. Only the attributes defined in the class can be changed
+		Adding attributes will require sub-classing otherwise we may have an unpredictable class ...
+		"""
+		allowed = list(vars(self).keys())
+		for field in args :
+			if field not in allowed :
+				continue
+			value = args[field]
+			setattr(self,field,value)
+class Reader (IO):
+	"""
+	This class is an abstraction of a read functionalities of a data store
+	"""
 	def __init__(self):
-		self.nrows = 0
-		self.xchar = None
-		
-	def row_count(self):		
-		content = self.read()
-		return np.sum([1 for row in content])
-	def delimiter(self,sample):
+		pass
+	def meta(self):
 		"""
-			This function determines the most common delimiter from a subset of possible delimiters. 
-			It uses a statistical approach (distribution) to guage the distribution of columns for a given delimiter
-			
-			:sample sample  string/content expecting matrix i.e list of rows
+		This function is intended to return meta-data associated with what has just been read
+		@return object of meta data information associated with the content of the store
 		"""
-		
-		m = {',':[],'\t':[],'|':[],'\x3A':[]} 
-		delim = list(m.keys())
-		for row in sample:
-			for xchar in delim:
-				if row.split(xchar) > 1:	
-					m[xchar].append(len(row.split(xchar)))
-				else:
-					m[xchar].append(0)
-				
-				
-					
-		#
-		# The delimiter with the smallest variance, provided the mean is greater than 1
-		# This would be troublesome if there many broken records sampled
-		#
-		m = {id: np.var(m[id]) for id in list(m.keys()) if m[id] != [] and int(np.mean(m[id]))>1}
-		index = list(m.values()).index( min(m.values()))
-		xchar = list(m.keys())[index]
-		
-		return xchar
-	def col_count(self,sample):
+		raise Exception ("meta function needs to be implemented")
+	def read(**args):
 		"""
-		This function retirms the number of columns of a given sample
-		@pre self.xchar is not None
+		This function is intended to read the content of a store provided parameters to be used at the discretion of the subclass
 		"""
-		
-		m = {}
-		i = 0
-		
-		for row in sample:
-			row = self.format(row)
-			id = str(len(row))
-			#id = str(len(row.split(self.xchar))) 
-			
-			if id not in m:
-				m[id] = 0
-			m[id] = m[id] + 1
-		
-		index = list(m.values()).index( max(m.values()) )
-		ncols = int(list(m.keys())[index])
-		
-		
-		return ncols;
-	def format (self,row):
-		"""
-			This function will clean records of a given row by removing non-ascii characters
-			@pre self.xchar is not None
-		"""
-		
-		if isinstance(row,list) == False:
-			#
-			# We've observed sometimes fields contain delimiter as a legitimate character, we need to be able to account for this and not tamper with the field values (unless necessary)
-			cols = self.split(row)
-			#cols = row.split(self.xchar)
-		else:
-			cols = row ;
-		return [ re.sub('[^\x00-\x7F,\n,\r,\v,\b,]',' ',col.strip()).strip().replace('"','') for col in cols]
-		
-	def split (self,row):
-		"""
-			This function performs a split of a record and tries to attempt to preserve the integrity of the data within i.e accounting for the double quotes.
-			@pre : self.xchar is not None
-		""" 
-
-		pattern = "".join(["(?:^|",self.xchar,")(\"(?:[^\"]+|\"\")*\"|[^",self.xchar,"]*)"])
-		return re.findall(pattern,row.replace('\n',''))
+		raise Exception ("read function needs to be implemented")		
 
 
-class Writer:
-	
+class Writer(IO):
+	def __init__(self):
+		self.cache = {"default":[]}
+	def log(self,**args):
+		self.cache[id] = args
+	def meta (self,id="default",**args):
+		raise Exception ("meta function needs to be implemented")
 	def format(self,row,xchar):
 		if xchar is not None and isinstance(row,list):
 			return xchar.join(row)+'\n'
 		elif xchar is None and isinstance(row,dict):
 			row = json.dumps(row)
 		return row
-	"""
+	def write(self,**args):
+		"""
+		This function will write content to a store given parameters to be used at the discretion of the sub-class
+		"""
+		raise Exception ("write function needs to be implemented")
+
+	def archive(self):
+		"""
 		It is important to be able to archive data so as to insure that growth is controlled
 		Nothing in nature grows indefinitely neither should data being handled.
+		"""
+		raise Exception ("archive function needs to be implemented")
+	def close(self):
+		"""
+		This function will close the persistent storage connection/handler
+		"""
+		pass
+class ReadWriter(Reader,Writer) :
 	"""
-	def archive(self):
-		pass
-	def flush(self):
-		pass
-
+	This class implements the read/write functions aggregated
+	"""
+	pass
 # class factory :
 # 	@staticmethod
 # 	def instance(**args):

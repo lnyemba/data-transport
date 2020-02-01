@@ -4,7 +4,12 @@ Steve L. Nyemba, The Phi Technology LLC
 
 This file is a wrapper around mongodb for reading/writing content against a mongodb server and executing views (mapreduce)
 """
-from pymongo import MongoClient
+from pymongo        import MongoClient
+from bson.objectid  import ObjectId
+from bson.binary    import Binary
+import json
+from datetime import datetime
+import gridfs
 # from transport import Reader,Writer
 import sys
 if sys.version_info[0] > 2 :
@@ -19,11 +24,11 @@ class Mongo :
     def __init__(self,**args):
         """
             :dbname     database name/identifier
-            :host   host and port of the database
+            :host       host and port of the database by default localhost:27017
             :username   username for authentication
             :password   password for current user
         """
-        host = args['host']
+        host = args['host'] if 'host' in args else 'localhost:27017'
         
         if 'user' in args and 'password' in args:        
             self.client = MongoClient(host,
@@ -31,7 +36,7 @@ class Mongo :
                       password=args['password'] ,
                       authMechanism='SCRAM-SHA-256')
         else:
-            self.client = MongoClient()                    
+            self.client = MongoClient(host)                    
         
         self.uid    = args['doc']  #-- document identifier
         self.dbname = args['dbname']
@@ -62,17 +67,67 @@ class MongoWriter(Mongo,Writer):
     """
     def __init__(self,**args):
         Mongo.__init__(self,**args)
-    def write(self,**args):
+    def upload(self,**args) :
+        """
+        This function will upload a file to the current database (using GridFS)
+        :param  data        binary stream/text to be stored
+        :param  filename    filename to be used
+        :param  encoding    content_encoding (default utf-8)
+        
+        """
+        if 'encoding' not in args :
+            args['encoding'] = 'utf-8'
+        gfs = GridFS(self.db)
+        gfs.put(**args)
+
+    def archive(self):
+        """
+        This function will archive documents to the 
+        """
+        collection = self.db[self.uid]
+        rows  = list(collection.find())
+        for row in rows :
+            if type(row['_id']) == ObjectId :
+                row['_id'] = str(row['_id'])
+        stream = Binary(json.dumps(collection).encode())
+        collection.delete_many({})
+        now = "-".join([str(datetime.now().year()),str(datetime.now().month), str(datetime.now().day)])
+        name = ".".join([self.uid,'archive',now])+".json"
+        description = " ".join([self.uid,'archive',str(len(rows))])
+        self.upload(filename=name,data=stream,description=description,content_type='application/json')
+        # gfs = GridFS(self.db)
+        # gfs.put(filename=name,description=description,data=stream,encoding='utf-8')
+        # self.write({{"filename":name,"file":stream,"description":descriptions}})
+        
+            
+        pass
+    def write(self,info):
+        """
+        This function will write to a given collection i.e add a record to a collection (no updates)
+        @param info new record in the collection to be added
+        """
         # document  = self.db[self.uid].find()
         collection = self.db[self.uid]
-        if type(args['row']) == list :
-            self.db[self.uid].insert_many(args['row'])
+        # if type(info) == list :
+        #     self.db[self.uid].insert_many(info)
+        # else:
+        if (type(info) == list) :
+            self.db[self.uid].insert_many(info)
         else:
-            self.db[self.uid].insert_one(args['row'])
+            self.db[self.uid].insert_one(info)
     def set(self,document):
+        """
+        if no identifier is provided the function will delete the entire collection and set the new document.
+        Please use this function with great care (archive the content first before using it... for safety)
+        """
+
         collection = self.db[self.uid]
-        if collection.count_document() > 0 :
-            collection.delete({_id:self.uid})
-        
-        collecton.update_one({"_id":self.uid},document,True)
+        if collection.count_document() > 0  and '_id' in document:
+            id = document['_id']
+            del document['_id']
+            collection.find_one_and_replace({'_id':id},document)
+        else:
+            collection.delete_many({})
+            self.write(info)
+        # collecton.update_one({"_id":self.uid},document,True)
 

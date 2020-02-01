@@ -6,7 +6,12 @@ import os
 import sys
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read() 
-args            = {"name":"data-transport","version":"1.0.0","author":"The Phi Technology LLC","author_email":"info@the-phi.com","license":"MIT","packages":["transport"]}
+args    = {
+    "name":"data-transport",
+    "version":"1.0.8",
+    "author":"The Phi Technology LLC","author_email":"info@the-phi.com",
+    "license":"MIT",
+    "packages":["transport"]}
 args["keywords"]=['mongodb','couchdb','rabbitmq','file','read','write','s3']
 args["install_requires"] = ['pymongo','numpy','cloudant','pika','boto','flask-session','smart_open']
 args["url"] =   "https://dev.the-phi.com/git/steve/data-transport.git"

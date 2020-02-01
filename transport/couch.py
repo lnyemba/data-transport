@@ -15,13 +15,13 @@ else:
 class Couch:
 	"""
 	This class is a wrapper for read/write against couchdb. The class captures common operations for read/write.
-		@param	url		host & port reference
+		@param	url		host & port reference default http://localhost:5984
 		@param	doc		user id involved
 		@param	dbname		database name (target)
 	"""
 	def __init__(self,**args):
-		url 		= args['url']
-		self.uid 	= args['doc']
+		url 		= args['url'] if 'url' in args else 'http://localhost:5984'
+		self._id 	= args['doc']
 		dbname		= args['dbname']
 		if 'username' not in args and 'password' not in args :
 			self.server 	= cloudant.CouchDB(None,None,url=url)
@@ -34,9 +34,9 @@ class Couch:
 			#
 			# @TODO Check if the database exists ...
 			#
-			doc = cloudant.document.Document(self.dbase,self.uid) #self.dbase.get(self.uid)
+			doc = cloudant.document.Document(self.dbase,self._id) #self.dbase.get(self._id)
 			if not doc.exists():
-				doc = self.dbase.create_document({"_id":self.uid})
+				doc = self.dbase.create_document({"_id":self._id})
 				doc.save()
 		else:
 			self.dbase = None
@@ -51,8 +51,8 @@ class Couch:
 		# At this point we are sure that the server is connected
 		# We are also sure that the database actually exists
 		#
-		doc = cloudant.document.Document(self.dbase,self.uid)
-		# q = self.dbase.all_docs(key=self.uid)['rows'] 
+		doc = cloudant.document.Document(self.dbase,self._id)
+		# q = self.dbase.all_docs(key=self._id)['rows'] 
 		# if not q :
 		if not doc.exists():
 			return False
@@ -107,7 +107,7 @@ class CouchReader(Couch,Reader):
 	# 	# We insure the document of the given user has the requested attachment.
 	# 	# 
 		
-	# 	doc = self.dbase.get(self.uid)
+	# 	doc = self.dbase.get(self._id)
 		
 	# 	if '_attachments' in doc:
 	# 		r = self.filename in doc['_attachments'].keys()
@@ -120,8 +120,8 @@ class CouchReader(Couch,Reader):
 		#
 		# @TODO Need to get this working ...
 		#
-		document = cloudant.document.Document(self.dbase,self.uid)
-		# content = self.dbase.fetch_attachment(self.uid,self.filename).split('\n') ;
+		document = cloudant.document.Document(self.dbase,self._id)
+		# content = self.dbase.fetch_attachment(self._id,self.filename).split('\n') ;
 		content = self.get_attachment(self.filename)
 		for row in content:
 			yield row
@@ -132,9 +132,9 @@ class CouchReader(Couch,Reader):
 		else:
 			return self.basic_read()
 	def basic_read(self):
-		document = cloudant.document.Document(self.dbase,self.uid)
+		document = cloudant.document.Document(self.dbase,self._id)
 		
-		# document = self.dbase.get(self.uid)
+		# document = self.dbase.get(self._id)
 		if document.exists() :			
 			document.fetch()
 			document = dict(document)
@@ -157,32 +157,62 @@ class CouchWriter(Couch,Writer):
 		"""
 
 		Couch.__init__(self,**args)
-
-	def write(self,**params):
+	def set (self,info):
+		document  = cloudand.document.Document(self.dbase,self._id)
+		if document.exists() :
+			keys = list(set(document.keys()) - set(['_id','_rev','_attachments']))
+			for id in keys :
+				document.field_set(document,id,None)
+			for id in args :
+				value = args[id]
+				document.field_set(document,id,value)
+			
+			document.save()
+			pass
+		else:
+			_document = dict({"_id":self._id},**args)
+			document.create_document(_document)
+	def write(self,info):
 		"""
 			write a given attribute to a document database
-			@param	label	scope of the row repair|broken|fixed|stats
-			@param	row	row to be written
+			@info	object to be written to the to an attribute. this 
 		"""
 		
-		# document = self.dbase.get(self.uid)
-		document = cloudant.document.Document(self.dbase,self.uid) #.get(self.uid)
+		# document = self.dbase.get(self._id)
+		document = cloudant.document.Document(self.dbase,self._id) #.get(self._id)
 		if document.exists() is False :
-			document = self.dbase.create_document({"_id":self.uid})
-		label = params['label']
-		row	= params['row']
-		if label not in document :
-			document[label] = []
-		document[label].append(row)
+			document = self.dbase.create_document({"_id":self._id})
+		# label = params['label']
+		# row	= params['row']
+		# if label not in document :
+		# 	document[label] = []
+		# document[label].append(row)
+		for key in info :
+			if key in document and type(document[key]) == list :
+				document[key] += info[key]
+			else:
+				document[key] = info[key]
+				
 		document.save()
 		# self.dbase.bulk_docs([document])
 		# self.dbase.save_doc(document)
-			
+	
+	def upload(self,**args):
+		"""
+		:param	name	name of the file to be uploaded
+		:param	data	content of the file (binary or text)
+		:param	content_type	(default)
+		"""
+		mimetype = args['content_type'] if 'content_type' in args else 'text/plain'
+		document = cloudant.document.Document(self.dbase,self.uid)		
+		document.put_attachment(self.dbase,args['filename'],mimetype,args['content'])
+		document.save()
+
 	def archive(self,params=None):
 		"""
 		This function will archive the document onto itself. 		
 		"""
-		# document = self.dbase.all_docs(self.uid,include_docs=True)
+		# document = self.dbase.all_docs(self._id,include_docs=True)
 		document = cloudant.document.Document(self.dbase,self.filename)
 		document.fetch()
 		content = {}
@@ -196,8 +226,9 @@ class CouchWriter(Couch,Writer):
 		# document= _doc
 		now = str(datetime.today())
 		
-		name = '-'.join([document['_id'] , now,'.json'])			
+		name = '-'.join([document['_id'] , now,'.json'])	
+		self.upload(filename=name,data=content,content_type='application/json')		
 		# self.dbase.bulk_docs([document])
 		# self.dbase.put_attachment(document,content,name,'application/json')
-		document.put_attachment(self.dbase,name,'application/json',content)
-		document.save()
+		# document.put_attachment(self.dbase,name,'application/json',content)
+		# document.save()
