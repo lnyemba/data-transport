@@ -58,7 +58,7 @@ class MessageQueue:
 	def isready(self):
 		#self.init()
 		resp =  self.connection is not None and self.connection.is_open
-		self.close()
+		# self.close()
 		return resp
 	def finalize(self):
 		pass
