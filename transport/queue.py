@@ -172,7 +172,7 @@ class QueueReader(MessageQueue,Reader):
 			
 			r = stream
 		
-		qid = self.info.method.queue
+		qid = self.qhandler.method.queue
 		if qid not in self.data :
 			self.data[qid] = []
 		
@@ -202,7 +202,7 @@ class QueueReader(MessageQueue,Reader):
 			self.init(qid)
 			# r[qid] = []
 			
-			if self.info.method.message_count > 0:
+			if self.qhandler.method.message_count > 0:
 				
 				self.channel.basic_consume(self.callback,queue=qid,no_ack=False);
 				self.channel.start_consuming()
