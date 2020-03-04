@@ -142,7 +142,7 @@ class QueueReader(MessageQueue,Reader):
 		#self.exchange = params['uid']
 		#self.queue = params['qid']
 		MessageQueue.__init__(self,**params);
-		self.init()
+		# self.init()
 		if 'durable' in params :
 			self.durable = True
 		else:
@@ -198,13 +198,14 @@ class QueueReader(MessageQueue,Reader):
 		#
 		if isinstance(self.queue,str) :
 					self.queue = [self.queue]
+		
 		for qid in self.queue:
 			self.init(qid)
 			# r[qid] = []
 			
 			if self.qhandler.method.message_count > 0:
 				
-				self.channel.basic_consume(self.callback,queue=qid,no_ack=False);
+				self.channel.basic_consume(queue=qid,on_message_callback=self.callback,auto_ack=False);
 				self.channel.start_consuming()
 			else:
 				
