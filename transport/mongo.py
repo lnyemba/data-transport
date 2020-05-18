@@ -39,7 +39,7 @@ class Mongo :
             self.client = MongoClient(host)                    
         
         self.uid    = args['doc']  #-- document identifier
-        self.dbname = args['dbname'] if 'db' in args else args['db']
+        self.dbname = args['dbname'] if 'dbname' in args else args['db']
         self.db = self.client[self.dbname]
         
     def isready(self):

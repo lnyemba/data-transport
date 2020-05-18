@@ -126,7 +126,7 @@ class CouchReader(Couch,Reader):
 		for row in content:
 			yield row
 		
-	def read(self,size=-1):
+	def read(self,**args):
 		if self.filename is not None:
 			self.stream()
 		else:
