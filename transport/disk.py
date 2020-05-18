@@ -1,5 +1,9 @@
 import os
-from .__init__ import Reader,Writer
+import sys
+if sys.version_info[0] > 2 : 
+    from transport.common import Reader, Writer #, factory
+else:
+	from common import Reader,Writer
 import json
 
 class DiskReader(Reader) :
@@ -18,12 +22,12 @@ class DiskReader(Reader) :
 		self.delimiter	= params['delimiter'] if 'delimiter' in params else None
 	def isready(self):
 		return os.path.exists(self.path) 
-	def read(self,size=-1):
+	def read(self,**args):
 		"""
 		This function reads the rows from a designated location on disk
 		@param	size	number of rows to be read, -1 suggests all rows
 		"""
-
+		size = -1 if 'size' not in args else int(args['size'])
 		f = open(self.path,'rU') 
 		i = 1
 		for row in f:

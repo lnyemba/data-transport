@@ -47,7 +47,7 @@ class Reader (IO):
 		@return object of meta data information associated with the content of the store
 		"""
 		raise Exception ("meta function needs to be implemented")
-	def read(**args):
+	def read(self,**args):
 		"""
 		This function is intended to read the content of a store provided parameters to be used at the discretion of the subclass
 		"""

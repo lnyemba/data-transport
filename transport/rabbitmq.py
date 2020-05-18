@@ -183,7 +183,7 @@ class QueueReader(MessageQueue,Reader):
 		if self.size == len(self.data[qid]) or len(self.data[qid]) == self.info.method.message_count:		
 			self.close()
 
-	def read(self,size=-1):
+	def read(self,**args):
 		"""
 		This function will read, the first message from a queue
 		@TODO: 
@@ -191,7 +191,7 @@ class QueueReader(MessageQueue,Reader):
 			Have the number of messages retrieved be specified by size (parameter)
 		"""
 		r = {}
-		self.size = size
+		self.size = -1 if 'size' in args else int(args['size'])
 		#
 		# We enabled the reader to be able to read from several queues (sequentially for now)
 		# The qid parameter will be an array of queues the reader will be reading from

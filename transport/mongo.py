@@ -39,7 +39,7 @@ class Mongo :
             self.client = MongoClient(host)                    
         
         self.uid    = args['doc']  #-- document identifier
-        self.dbname = args['dbname']
+        self.dbname = args['dbname'] if 'db' in args else args['db']
         self.db = self.client[self.dbname]
         
     def isready(self):
@@ -53,9 +53,10 @@ class MongoReader(Mongo,Reader):
     """
     def __init__(self,**args):
         Mongo.__init__(self,**args)
-    def read(self,size=-1):
+    def read(self,**args):
         collection = self.db[self.uid]
-        return collection.find({})
+        _filter = args['filter'] if 'filter' in args else {}
+        return collection.find(_filter)
     def view(self,**args):
         """
         This function is designed to execute a view (map/reduce) operation

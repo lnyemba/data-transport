@@ -50,10 +50,11 @@ import sys
 if sys.version_info[0] > 2 : 
     from transport.common import Reader, Writer #, factory
     from transport import disk
-    from transport import queue as queue
+
+    from transport import s3 as s3
+    from transport import rabbitmq as queue
     from transport import couch as couch
     from transport import mongo as mongo
-    from transport import s3 as s3
 else:
     from common import Reader, Writer #, factory
     import disk
