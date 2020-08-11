@@ -161,7 +161,9 @@ class SQLiteWriter(DiskWriter) :
 		
 		sql = " " .join(["INSERT INTO ",self.table,"(", ",".join(self.fields) ,")", "values(':values')"])
 		for row in info :
-			cursor.execute(sql.replace(":values",json.dumps(row)))
+			stream = json.dumps(row)
+			stream = stream.replace("'","''")
+			cursor.execute(sql.replace(":values",stream) )
 			# self.conn.commit()
 				# print (sql)
 			
