@@ -95,7 +95,7 @@ class DiskWriter(Writer):
 					f.write(self.format(info))
 			else:
 				if not type(info) == str :
-					f.write(json.dumps(info))
+					f.write(json.dumps(info)+"\n")
 				else:
 					f.write(info)
 			f.close()
