@@ -105,6 +105,24 @@ class DiskWriter(Writer):
 			pass
 		finally:
 			DiskWriter.THREAD_LOCK.release()
+class SQLiteReader (DiskReader):
+	def __init__(self,**args)
+		DiskReader.__init__(self,**args)
+		self.conn = sqlite3.connect(self.path,isolation_level=None)
+		self.conn.row_factory = sqlite3.Row
+		self.table = args['table']
+	def read(self,**args):
+		if 'sql' in args :
+			sql = args['sql']			
+		else if 'filter' in args :
+			sql = "SELECT :fields FROM ",self.table, "WHERE (:filter)".replace(":filter",args['filter'])
+			sql = sql.replace(":fields",args['fields']) if 'fields' in args else sql.replace(":fields","*")
+		return = pd.read_sql(sql,self.conn)
+	def close(self):
+		try:
+			self.conn.close()
+		except Exception as e :
+			pass
 
 class SQLiteWriter(DiskWriter) :
 	def __init__(self,**args):
