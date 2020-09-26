@@ -17,6 +17,7 @@ if sys.version_info[0] > 2 :
 else:
 	from common import Reader, Writer
 import json
+import re
 class Mongo :
     """
     Basic mongodb functions are captured here
@@ -54,9 +55,34 @@ class MongoReader(Mongo,Reader):
     def __init__(self,**args):
         Mongo.__init__(self,**args)
     def read(self,**args):
-        collection = self.db[self.uid]
-        _filter = args['filter'] if 'filter' in args else {}
-        return collection.find(_filter)
+        if 'mongo' in args :
+            #
+            # @TODO:
+            cmd = args['mongo']
+            r =  []
+            out = self.db.command(cmd)
+            #@TODO: consider using a yield (generator) works wonders
+            while True :
+                if 'cursor' in out :
+                    key = 'firstBatch' if 'firstBatch' in out['cursor'] else 'nextBatch'
+                else:
+                    key = 'n'
+                if 'cursor' in out and out['cursor'][key] :
+                    r += list(out['cursor'][key])
+                elif out[key]:
+                    r.append (out[key]) 
+                    # yield out['cursor'][key]
+                if key not in ['firstBatch','nextBatch'] or ('cursor' in out and out['cursor']['id']  == 0) :
+                    break
+                else:
+                    out = self.db.command({"getMore":out['cursor']['id'],"collection":out['cursor']['ns'].split(".")[-1]}) 
+                
+                
+            return r
+        else:
+            collection = self.db[self.uid]                
+            _filter = args['filter'] if 'filter' in args else {}
+            return collection.find(_filter)
     def view(self,**args):
         """
         This function is designed to execute a view (map/reduce) operation
