@@ -47,6 +47,8 @@ class Mongo :
         p = self.dbname in self.client.list_database_names() 
         q = self.uid in self.client[self.dbname].list_collection_names()
         return p and q
+    def close(self):
+        self.db.close()
 
 class MongoReader(Mongo,Reader):
     """
