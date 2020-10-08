@@ -37,7 +37,7 @@ class Mongo :
                       password=args['password'] ,
                       authMechanism='SCRAM-SHA-256')
         else:
-            self.client = MongoClient(host)                    
+            self.client = MongoClient(host,maxPoolSize=10000)                    
         
         self.uid    = args['doc']  #-- document identifier
         self.dbname = args['dbname'] if 'dbname' in args else args['db']
