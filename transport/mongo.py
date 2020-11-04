@@ -71,7 +71,7 @@ class MongoReader(Mongo,Reader):
                     key = 'n'
                 if 'cursor' in out and out['cursor'][key] :
                     r += list(out['cursor'][key])
-                elif out[key]:
+                elif key in out and out[key]:
                     r.append (out[key]) 
                     # yield out['cursor'][key]
                 if key not in ['firstBatch','nextBatch'] or ('cursor' in out and out['cursor']['id']  == 0) :

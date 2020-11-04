@@ -128,8 +128,3 @@ class s3Writer(s3,Writer) :
 		self.s3.upload_fileobj(file,self.bucket_name,self.filename)
 		pass
 		
-if __name__ == '__main__'		:
-	p = {'access_key':'AKIAJO7KII27XH3TCPJQ','secret_key':'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'}
-	reader = s3Reader(**p)
-	buckets = reader.buckets()
-	print(reader.list(name  = buckets[0]))
