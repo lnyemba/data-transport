@@ -48,7 +48,7 @@ class Mongo :
         q = self.uid in self.client[self.dbname].list_collection_names()
         return p and q
     def close(self):
-        self.db.close()
+        self.client.close()
 
 class MongoReader(Mongo,Reader):
     """
@@ -158,5 +158,7 @@ class MongoWriter(Mongo,Writer):
         else:
             collection.delete_many({})
             self.write(info)
+    def close(self):
+        Mongo.close(self)
         # collecton.update_one({"_id":self.uid},document,True)
 
