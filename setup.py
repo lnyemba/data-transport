@@ -8,12 +8,12 @@ def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read() 
 args    = {
     "name":"data-transport",
-    "version":"1.2.8",
+    "version":"1.3.0",
     "author":"The Phi Technology LLC","author_email":"info@the-phi.com",
     "license":"MIT",
     "packages":["transport"]}
 args["keywords"]=['mongodb','couchdb','rabbitmq','file','read','write','s3','sqlite']
-args["install_requires"] = ['pymongo','numpy','cloudant','pika','boto','flask-session','smart_open']
+args["install_requires"] = ['pymongo','numpy','cloudant','pika','boto','flask-session','smart_open','botocore']
 args["url"] =   "https://dev.the-phi.com/git/steve/data-transport.git"
 
 if sys.version_info[0] == 2 :

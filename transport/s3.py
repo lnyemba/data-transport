@@ -115,7 +115,7 @@ class s3Reader(s3,Reader) :
 
 class s3Writer(s3,Writer) :
 
-	def __init__(self,args) :
+	def __init__(self,**args) :
 		s3.__init__(self,args)
 	def mkdir(self,name):
 		"""
