@@ -7,6 +7,7 @@ else:
 import json
 from threading import Lock
 import sqlite3
+import pandas as pd
 
 class DiskReader(Reader) :
 	"""
