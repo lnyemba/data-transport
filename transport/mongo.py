@@ -65,6 +65,8 @@ class MongoReader(Mongo,Reader):
             out = self.db.command(cmd)
             #@TODO: consider using a yield (generator) works wonders
             while True :
+                if 'values' in out :
+                    r += out['values']
                 if 'cursor' in out :
                     key = 'firstBatch' if 'firstBatch' in out['cursor'] else 'nextBatch'
                 else:
