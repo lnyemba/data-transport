@@ -44,6 +44,14 @@ class SQLRW :
         # We need to load the drivers here to see what we are dealing with ...
         _handler = SQLWriter.DRIVERS[_args['provider']]
         self.conn = _handler.connect(**_info)
+    
+    def isready(self):
+        _sql = "SELECT * FROM :table LIMIT 1".replace(":table",self.table)
+        try:
+            return pd.read_sql(_sql,self.conn).columns.tolist()
+        except Exception as e:
+            pass
+        return False
     def apply(self,_sql):
         """
         This function applies a command and/or a query against the current relational data-store
@@ -138,8 +146,8 @@ class SQLWriter(SQLRW,Writer):
         finally:
             pass
 
-_args = {"db":"sample","table":"foo","provider":"postgresql"}
-# # w = SQLWriter(**_args)
-# # w.write({"name":"kalara.io","email":"ceo@kalara.io","age":10})
-r = SQLReader(**_args)
-print (r.read(filter='age > 0',limit = 20))
+# _args = {"db":"sample","table":"foo","provider":"postgresql"}
+# # # w = SQLWriter(**_args)
+# # # w.write({"name":"kalara.io","email":"ceo@kalara.io","age":10})
+# r = SQLReader(**_args)
+# print (r.read(filter='age > 0',limit = 20))
