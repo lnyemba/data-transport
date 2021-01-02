@@ -60,12 +60,12 @@ class SQLRW :
         """
         cursor = self.conn.cursor()
         try:
-            if "insert" in _sql .lower() or "update" in _sql.lower() :
-                # Executing a command i.e no expected return values ...
-                cursor.execute(_sql)
-            else:
+            if "select" in _sql.lower() :
                 cursor.close()
                 return pd.read_sql(_sql,self.conn)
+            else:
+                # Executing a command i.e no expected return values ...
+                cursor.execute(_sql)
             
         finally:
             cursor.close()
