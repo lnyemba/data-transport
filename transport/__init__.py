@@ -55,6 +55,7 @@ if sys.version_info[0] > 2 :
     from transport import rabbitmq as queue
     from transport import couch as couch
     from transport import mongo as mongo
+    from transport import sql as sql
 else:
     from common import Reader, Writer #, factory
     import disk
@@ -62,6 +63,7 @@ else:
     import couch
     import mongo
     import s3
+    import sql
 
 
 class factory :
