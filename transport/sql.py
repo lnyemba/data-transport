@@ -66,6 +66,7 @@ class SQLRW :
             else:
                 # Executing a command i.e no expected return values ...
                 cursor.execute(_sql)
+                self.conn.commit()
             
         finally:
             cursor.close()
