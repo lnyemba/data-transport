@@ -59,6 +59,7 @@ class SQLRW :
         @TODO: Store procedure calls
         """
         cursor = self.conn.cursor()
+        _out = None
         try:
             if "select" in _sql.lower() :
                 cursor.close()
@@ -69,6 +70,7 @@ class SQLRW :
                 self.conn.commit()
             
         finally:
+            self.conn.commit()
             cursor.close()
     def close(self):
         try:
@@ -142,13 +144,14 @@ class SQLWriter(SQLRW,Writer):
                     if self._cast == False :
                         values = ",".join(_row.values())
                     else:
-                        values = "'"+"','".join([str(value) for value in _row.values()])+"'"
+                        # values = "'"+"','".join([str(value) for value in _row.values()])+"'"
+                        values = [",".join(["%(",name,")s"]) for name in _row.keys()]
                     
                     # values = [ "".join(["'",str(_row[key]),"'"]) if np.nan(_row[key]).isnumeric() else str(_row[key]) for key in _row]
                     # print (values)
                     query = _sql.replace(":fields",",".join(fields)).replace(":values",values)
                     
-                    cursor.execute(query)
+                    cursor.execute(query,_row.values())
                 
 
                 pass
@@ -160,10 +163,11 @@ class SQLWriter(SQLRW,Writer):
                 # for row in info :
                 #     values = ["'".join(["",value,""]) if not str(value).isnumeric() else value for value in row.values()]
                 cursor.executemany(_sql,info)   
-            self.conn.commit()
+            # self.conn.commit()
         except Exception as e:
             print (e) 
         finally:
+            self.conn.commit()
             cursor.close()
             pass
     def close(self):
