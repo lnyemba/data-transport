@@ -18,9 +18,13 @@ else:
 	from common import Reader,Writer
 import json
 from google.oauth2 import service_account
+from google.cloud import bigquery as bq
 from multiprocessing import Lock
 import pandas as pd
 import numpy as np
+import copy
+
+
 class SQLRW :
     PROVIDERS = {"postgresql":"5432","redshift":"5432","mysql":"3306","mariadb":"3306"}
     DRIVERS  = {"postgresql":pg,"redshift":pg,"mysql":my,"mariadb":my}
@@ -177,9 +181,32 @@ class SQLWriter(SQLRW,Writer):
             pass
 class BigQuery:
     def __init__(self,**_args):
-        path = _args['service_key']
+        path = _args['service_key'] if 'service_key' in _args else _args['private_key']
         self.credentials = service_account.Credentials.from_service_account_file(path)
-        
+        self.dataset = _args['dataset'] if 'dataset' in _args else None
+        self.path = path
+    def meta(self,**_args):
+        """
+        This function returns meta data for a given table or query with dataset/table properly formatted
+        :param table    name of the name WITHOUT including dataset
+        :param sql      sql query to be pulled,
+        """
+        #if 'table' in _args :
+        #    sql = "SELECT * from :dataset."+ _args['table']" limit 1"
+        #else:
+        #    sql = _args['sql'] 
+        #    if 'limit' not in sql.lower() :
+        #        sql = sql + ' limit 1'
+
+        #sql = sql.replace(':dataset',self.dataset) if ':dataset' in args else sql
+
+        #
+        # Let us return the schema information now for a given table 
+        #
+        table = _args['table']
+        client = bq.Client.from_service_account_json(self.path)
+        ref     = client.dataset(self.dataset).table(table)
+        return client.get_table(ref).schema
 class BQReader(BigQuery,Reader) :
     def __init__(self,**_args):
         
@@ -196,7 +223,8 @@ class BQReader(BigQuery,Reader) :
             SQL = "SELECT  * FROM :table ".replace(":table",table)
         if SQL and 'limit' in _args:
             SQL += " LIMIT "+str(_args['limit'])
-
+        if (':dataset' in SQL or ':DATASET' in SQL)  and self.dataset:
+            SQL = SQL.replace(':dataset',self.dataset).replace(':DATASET',self.dataset)
         return pd.read_gbq(SQL,credentials=self.credentials,dialect='standard') if SQL else None
 class BQWriter(BigQuery,Writer):
     Lock = Lock()
@@ -223,7 +251,14 @@ class BQWriter(BigQuery,Writer):
             elif type(_info) == pd.DataFrame :
                 _df = _info 
             
-            self.mode['destination_table'] = _args['table'].strip()
+            if '.'  not in _args['table'] :
+                self.mode['destination_table'] = '.'.join([self.dataset,_args['table']])
+            else:
+
+                self.mode['destination_table'] = _args['table'].strip()
+            if 'schema' in _args :
+                self.mode['table_schema'] = _args['schema']
+            _mode = copy.deepcopy(self.mode)
             _df.to_gbq(**self.mode) #if_exists='append',destination_table=partial,credentials=credentials,chunksize=90000)	
             
         pass
