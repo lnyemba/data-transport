@@ -238,11 +238,11 @@ class BQWriter(BigQuery,Writer):
     def write(self,_info,**_args) :
         try:
             if self.parallel :
-                self.lock.acquire()
+                BQWriter.lock.acquire()
             self._write(_info,**_args)
         finally:
             if self.parallel:
-                self.lock.release()
+                BQWriter.lock.release()
     def _write(self,_info,**_args) :
         _df = None
         if type(_info) in [list,pd.DataFrame] :
