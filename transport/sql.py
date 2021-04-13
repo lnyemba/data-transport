@@ -227,7 +227,7 @@ class BQReader(BigQuery,Reader) :
             SQL = SQL.replace(':dataset',self.dataset).replace(':DATASET',self.dataset)
         return pd.read_gbq(SQL,credentials=self.credentials,dialect='standard') if SQL else None
 class BQWriter(BigQuery,Writer):
-    Lock = Lock()
+    lock = Lock()
     def __init__(self,**_args):
         super().__init__(**_args)    
         
