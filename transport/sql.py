@@ -226,12 +226,7 @@ class BQReader(BigQuery,Reader) :
             SQL += " LIMIT "+str(_args['limit'])
         if (':dataset' in SQL or ':DATASET' in SQL)  and self.dataset:
             SQL = SQL.replace(':dataset',self.dataset).replace(':DATASET',self.dataset)
-        _info = {'credentials':self.credentials,'dialect':'standard'}
-        if 'dtypes' in _args  or self.dtypes :
-            if not self.dtypes :
-                self.dtypes = _args ['dtypes'] if 'dtypes' in _args else None
-            if self.dtypes :
-                _info['dtypes'] = self.dtypes
+        _info = {'credentials':self.credentials,'dialect':'standard'}       
         return pd.read_gbq(SQL,**_info) if SQL else None    
         # return pd.read_gbq(SQL,credentials=self.credentials,dialect='standard') if SQL else None
 class BQWriter(BigQuery,Writer):
