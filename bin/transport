@@ -84,7 +84,7 @@ class ETL (Process):
 			print (e)
 if __name__ == '__main__' :
 	_config = json.loads(open (SYS_ARGS['config']).read())
-	_config['jobs'] = 10 if 'jobs' not in SYS_ARGS else SYS_ARGS['jobs']
+	_config['jobs'] = 10 #if 'jobs' not in SYS_ARGS else SYS_ARGS['jobs']
 	
 	for _config in _info :
 		etl = ETL (**_config)
