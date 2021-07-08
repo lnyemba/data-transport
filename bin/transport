@@ -83,9 +83,10 @@ class ETL (Process):
 		except Exception as e:
 			print (e)
 if __name__ == '__main__' :
-	_config = json.loads(open (SYS_ARGS['config']).read())
-	_config['jobs'] = 10 #if 'jobs' not in SYS_ARGS else SYS_ARGS['jobs']
+	_info = json.loads(open (SYS_ARGS['config']).read())
+	
 	
 	for _config in _info :
+		_config['jobs']  = 10 if 'jobs' not in SYS_ARGS else SYS_ARGS['jobs']
 		etl = ETL (**_config)
 		etl.start()
