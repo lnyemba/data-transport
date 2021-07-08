@@ -42,7 +42,8 @@ The configuration for the data-store is as follows :
 	}
 """
 __author__ = 'The Phi Technology'
-import numpy as np
+import pandas 	as pd
+import numpy 	as np
 import json
 import importlib 
 import sys 
@@ -96,6 +97,9 @@ class factory :
 		except Exception as e:
 			print(['Error ',e])
 		return anObject
+
+import time
+
 
 # class Reader:
 # 	def __init__(self):

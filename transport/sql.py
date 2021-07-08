@@ -87,13 +87,14 @@ class SQLRW :
                 # Executing a command i.e no expected return values ...
                 cursor.execute(_sql)
                 self.conn.commit()
-            
+        except Exception as e :
+            print (e)    
         finally:
             self.conn.commit()
             cursor.close()
     def close(self):
         try:
-            self.connect.close()
+            self.conn.close()
         except Exception as error :
             print (error)
             pass
@@ -112,6 +113,12 @@ class SQLReader(SQLRW,Reader) :
         if 'limit' in _args :
             _sql = _sql + " LIMIT "+str(_args['limit'])
         return self.apply(_sql)
+    def close(self) :
+        try:
+            self.conn.close()
+        except Exception as error :
+            print (error)
+            pass
 
 class SQLWriter(SQLRW,Writer):
     def __init__(self,**_args) :
@@ -122,7 +129,7 @@ class SQLWriter(SQLRW,Writer):
         # NOTE: Proper data type should be set on the target system if their source is unclear.
         self._inspect = False if 'inspect' not in _args else _args['inspect']
         self._cast = False if 'cast' not in _args else _args['cast']
-    def init(self,fields):
+    def init(self,fields=None):
         if not fields :
             try:                
                 self.fields = pd.read_sql("SELECT * FROM :table LIMIT 1".replace(":table",self.table),self.conn).columns.tolist()
@@ -192,6 +199,7 @@ class SQLWriter(SQLRW,Writer):
             
             # self.conn.commit()
         except Exception as e:
+            print(e)
             pass
         finally:
             self.conn.commit()
