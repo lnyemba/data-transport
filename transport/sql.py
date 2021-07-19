@@ -296,13 +296,13 @@ class BQWriter(BigQuery,Writer):
             _df.to_gbq(**self.mode) #if_exists='append',destination_table=partial,credentials=credentials,chunksize=90000)	
             
         pass
-import transport    
-try:
-    _args = {'type':'sql.SQLWriter','args':{'provider':'netezza','host':'ori-netezza.vumc.org','table':'IBM_CCS_DX','username':'nyembsl1','password':'Innovat10n','database':'MALIN_OMOP_RD'}}
-    df = pd
-    reader = SQLReader(**_args['args'])
-except Exception as error :
-    print (error)
+# import transport    
+# try:
+#     _args = {'type':'sql.SQLWriter','args':{'provider':'netezza','host':'ori-netezza.vumc.org','table':'IBM_CCS_DX','username':'nyembsl1','password':'Innovat10n','database':'MALIN_OMOP_RD'}}
+#     df = pd
+#     reader = SQLReader(**_args['args'])
+# except Exception as error :
+#     print (error)
 # reader = transport.factory.instance(type="sql.BQReader",args={"service_key":"/home/steve/dev/google-cloud-sdk/accounts/curation-prod.json"})
 # _df = reader.read(sql="select  * from `2019q1r4_combined.person` limit 10")
 # writer = transport.factory.instance(type="sql.BQWriter",args={"service_key":"/home/steve/dev/google-cloud-sdk/accounts/curation-prod.json"})
