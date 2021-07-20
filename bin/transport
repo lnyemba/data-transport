@@ -84,7 +84,8 @@ class ETL (Process):
 			print (e)
 if __name__ == '__main__' :
 	_info = json.loads(open (SYS_ARGS['config']).read())
-	
+	if 'source' in SYS_ARGS :
+		_info['source'] = {"type":"disk.DiskReader","args":{"path":SYS_ARGS['source'],"delimiter":","}}
 	
 	for _config in _info :
 		_config['jobs']  = 10 if 'jobs' not in SYS_ARGS else SYS_ARGS['jobs']
