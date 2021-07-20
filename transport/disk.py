@@ -26,10 +26,13 @@ class DiskReader(Reader) :
 	def isready(self):
 		return os.path.exists(self.path) 
 	def read(self,**args):
+		return pd.read_csv(self.path,delimiter=self.delimiter)
+	def stream(self,**args):
 		"""
 		This function reads the rows from a designated location on disk
 		@param	size	number of rows to be read, -1 suggests all rows
 		"""
+		
 		size = -1 if 'size' not in args else int(args['size'])
 		f = open(self.path,'rU') 
 		i = 1
@@ -39,7 +42,7 @@ class DiskReader(Reader) :
 			if size == i:
 				break
 			if self.delimiter :
-				yield row.split(self.char)
+				yield row.split(self.delimiter)
 			yield row
 		f.close()
 class DiskWriter(Writer):
