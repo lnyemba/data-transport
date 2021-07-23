@@ -157,14 +157,23 @@ class SQLWriter(SQLRW,Writer):
         # inspect = False if 'inspect' not in _args else _args['inspect']
         # cast = False if 'cast' not in _args else _args['cast']
         if not self.fields :
-            _fields = info.keys() if type(info) == dict else info[0].keys()
+            if type(info) == list :
+                _fields = info[0].keys()
+            elif type(info) == dict :
+                _fields = info.keys()
+            elif type(info) == pd.DataFrame :
+                _fields = info.columns
+
+            # _fields = info.keys() if type(info) == dict else info[0].keys()
             _fields = list (_fields)
             self.init(_fields)
         #
         # @TODO: Use pandas/odbc ? Not sure b/c it requires sqlalchemy
         #
         if type(info) != list :
-            info = [info]        
+            #
+            # We are assuming 2 cases i.e dict or pd.DataFrame
+            info = [info]  if type(info) == dict else info.values.tolist()       
         cursor = self.conn.cursor()
         try:
             _sql = "INSERT INTO :table (:fields) VALUES (:values)".replace(":table",self.table) #.replace(":table",self.table).replace(":fields",_fields)

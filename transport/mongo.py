@@ -142,8 +142,8 @@ class MongoWriter(Mongo,Writer):
         # if type(info) == list :
         #     self.db[self.uid].insert_many(info)
         # else:
-        if (type(info) == list) :
-            self.db[self.uid].insert_many(info)
+        if type(info) == list or type(info) == pd.DataFrame :
+            self.db[self.uid].insert_many(info if type(info) == list else info.to_dict(orient='records'))
         else:
             self.db[self.uid].insert_one(info)
     def set(self,document):

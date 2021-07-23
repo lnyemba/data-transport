@@ -41,6 +41,7 @@ class Post(Process):
 		self.rows 	=	 args['rows']
 	def run(self):
 		_info = {"values":self.rows} if 'couch' in self.PROVIDER else self.rows
+		
 		self.writer.write(_info)
 		self.writer.close()
 
@@ -70,7 +71,7 @@ class ETL (Process):
 			rows = np.array_split(np.arange(idf.shape[0]),self.JOB_COUNT)
 			jobs = []
 			for i in rows :
-				segment = idf.loc[i,:].to_dict(orient='records')
+				segment = idf.loc[i,:] #.to_dict(orient='records')
 				proc = Post(target = self._oargs,rows = segment)
 				jobs.append(proc)
 				proc.start()
@@ -89,6 +90,6 @@ if __name__ == '__main__' :
 		if 'source' in SYS_ARGS :
 			_config['source'] = {"type":"disk.DiskReader","args":{"path":SYS_ARGS['source'],"delimiter":","}}
 
-		_config['jobs']  = 10 if 'jobs' not in SYS_ARGS else SYS_ARGS['jobs']
+		_config['jobs']  = 10 if 'jobs' not in SYS_ARGS else int(SYS_ARGS['jobs'])
 		etl = ETL (**_config)
 		etl.start()
