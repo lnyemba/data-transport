@@ -202,7 +202,6 @@ class SQLWriter(SQLRW,Writer):
                 _sql = _sql.replace("(:fields)","")
                 values = ", ".join("?"*len(self.fields)) if self._provider == 'netezza' else ",".join(["%s" for name in self.fields])
                 _sql = _sql.replace(":values",values)
-                print (_sql)
                 
                 # for row in info :
                 #     values = ["'".join(["",value,""]) if not str(value).isnumeric() else value for value in row.values()]
