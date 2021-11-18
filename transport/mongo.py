@@ -84,7 +84,7 @@ class MongoReader(Mongo,Reader):
                     out = self.db.command({"getMore":out['cursor']['id'],"collection":out['cursor']['ns'].split(".")[-1]}) 
                 
                 
-            return r
+            return pd.DataFrame(r)
         else:
             collection = self.db[self.uid]                
             _filter = args['filter'] if 'filter' in args else {}

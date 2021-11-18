@@ -24,10 +24,11 @@ import pandas as pd
 import numpy as np
 import nzpy as nz   #--- netezza drivers
 import copy
+import os
 
 
 class SQLRW :
-    PROVIDERS = {"postgresql":"5432","redshift":"5432","mysql":"3306","mariadb":"3306","netezza":5480}
+   
     DRIVERS  = {"postgresql":pg,"redshift":pg,"mysql":my,"mariadb":my,"netezza":nz}
     REFERENCE = {
         "netezza":{"port":5480,"handler":nz,"dtype":"VARCHAR(512)"},
@@ -41,13 +42,19 @@ class SQLRW :
         
         _info = {}
         _info['dbname'] = _args['db'] if 'db' in _args else _args['database']
-        self.table      = _args['table']
+        self.table      = _args['table'] if 'table' in _args else None
         self.fields     = _args['fields'] if 'fields' in _args else []
-        _provider       = _args['provider']
-        if 'host' in _args :
-            _info['host'] = 'localhost' if 'host' not in _args else _args['host']
-            # _info['port'] = SQLWriter.PROVIDERS[_args['provider']] if 'port' not in _args else _args['port']
-            _info['port'] = SQLWriter.REFERENCE[_provider]['port'] if 'port' not in _args else _args['port']
+        # _provider       = _args['provider']
+        # _info['host'] = 'localhost' if 'host' not in _args else _args['host']
+        # _info['port'] = SQLWriter.REFERENCE[_provider]['port'] if 'port' not in _args else _args['port']
+
+        _info['host'] = _args['host']
+        _info['port'] = _args['port']
+        
+        # if 'host' in _args :
+        #     _info['host'] = 'localhost' if 'host' not in _args else _args['host']
+        #     # _info['port'] = SQLWriter.PROVIDERS[_args['provider']] if 'port' not in _args else _args['port']
+        #     _info['port'] = SQLWriter.REFERENCE[_provider]['port'] if 'port' not in _args else _args['port']
         
         if 'username' in _args or 'user' in _args:
             key = 'username' if 'username' in _args else 'user'
@@ -55,10 +62,14 @@ class SQLRW :
             _info['password'] = _args['password']
         #
         # We need to load the drivers here to see what we are dealing with ...
-        # _handler = SQLWriter.DRIVERS[_args['provider']]
-        _handler = SQLWriter.REFERENCE[_provider]['handler']
-        self._dtype = SQLWriter.REFERENCE[_provider]['dtype'] if 'dtype' not in _args else _args['dtype']
-        self._provider = _provider
+        
+        
+        # _handler = SQLWriter.REFERENCE[_provider]['handler']
+        _handler        = _args['driver']  #-- handler to the driver
+        self._dtype     = _args['default']['type'] if 'default' in _args and 'type' in _args['default'] else 'VARCHAR(256)'
+        self._provider  = _args['provider']
+        # self._dtype = SQLWriter.REFERENCE[_provider]['dtype'] if 'dtype' not in _args else _args['dtype']
+        # self._provider = _provider
         if _handler == nz :
             _info['database'] = _info['dbname']
             _info['securityLevel'] = 0
@@ -228,24 +239,13 @@ class BigQuery:
         self.dataset = _args['dataset'] if 'dataset' in _args else None
         self.path = path
         self.dtypes = _args['dtypes'] if 'dtypes' in _args else None
+        self.table = _args['table'] if 'table' in _args else None
     def meta(self,**_args):
         """
         This function returns meta data for a given table or query with dataset/table properly formatted
         :param table    name of the name WITHOUT including dataset
         :param sql      sql query to be pulled,
         """
-        #if 'table' in _args :
-        #    sql = "SELECT * from :dataset."+ _args['table']" limit 1"
-        #else:
-        #    sql = _args['sql'] 
-        #    if 'limit' not in sql.lower() :
-        #        sql = sql + ' limit 1'
-
-        #sql = sql.replace(':dataset',self.dataset) if ':dataset' in args else sql
-
-        #
-        # Let us return the schema information now for a given table 
-        #
         table = _args['table']
         client = bq.Client.from_service_account_json(self.path)
         ref     = client.dataset(self.dataset).table(table)
@@ -258,12 +258,15 @@ class BQReader(BigQuery,Reader) :
         pass
     def read(self,**_args):
         SQL = None
+        table = self.table if 'table' not in _args else _args['table']
         if 'sql' in _args :
             SQL = _args['sql']
-        elif 'table' in _args:
+        elif table:
 
-            table = "".join(["`",_args['table'],"`"]) 
+            table = "".join(["`",table,"`"]) if '.' in table else "".join(["`:dataset.",table,"`"])
             SQL = "SELECT  * FROM :table ".replace(":table",table)
+        if not SQL :
+            return None
         if SQL and 'limit' in _args:
             SQL += " LIMIT "+str(_args['limit'])
         if (':dataset' in SQL or ':DATASET' in SQL)  and self.dataset:
@@ -271,6 +274,7 @@ class BQReader(BigQuery,Reader) :
         _info = {'credentials':self.credentials,'dialect':'standard'}       
         return pd.read_gbq(SQL,**_info) if SQL else None    
         # return pd.read_gbq(SQL,credentials=self.credentials,dialect='standard') if SQL else None
+
 class BQWriter(BigQuery,Writer):
     lock = Lock()
     def __init__(self,**_args):
@@ -308,3 +312,8 @@ class BQWriter(BigQuery,Writer):
             _df.to_gbq(**self.mode) #if_exists='append',destination_table=partial,credentials=credentials,chunksize=90000)	
             
         pass
+#
+# Aliasing the big query classes allowing it to be backward compatible
+#
+BigQueryReader = BQReader
+BigQueryWriter = BQWriter

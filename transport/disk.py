@@ -22,10 +22,12 @@ class DiskReader(Reader) :
 
 		Reader.__init__(self)
 		self.path 		= params['path'] ;
-		self.delimiter	= params['delimiter'] if 'delimiter' in params else None
+		self.delimiter	= params['delimiter'] if 'delimiter' in params else ','
 	def isready(self):
 		return os.path.exists(self.path) 
 	def read(self,**args):
+		_path = self.path if 'path' not in args else args['path']
+		_delimiter = self.delimiter if 'delimiter' not in args else args['delimiter']
 		return pd.read_csv(self.path,delimiter=self.delimiter)
 	def stream(self,**args):
 		"""
@@ -121,6 +123,10 @@ class SQLiteReader (DiskReader):
 		elif 'filter' in args :
 			sql = "SELECT :fields FROM ",self.table, "WHERE (:filter)".replace(":filter",args['filter'])
 			sql = sql.replace(":fields",args['fields']) if 'fields' in args else sql.replace(":fields","*")
+		else:
+			sql = ' '.join(['SELECT * FROM ',self.table])
+		if 'limit' in args :
+			sql = sql + " LIMIT "+args['limit']
 		return  pd.read_sql(sql,self.conn)
 	def close(self):
 		try:
