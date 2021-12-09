@@ -16,7 +16,17 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 Usage :
 	transport --config <path-to-file.json> --procs <number-procs>
 @TODO: Create tables if they don't exist for relational databases
+example of configuration :
 
+1. Move data from a folder to a data-store
+	transport [--folder <path> ] --config <config.json>	 #-- assuming the configuration doesn't have folder 
+	transport --folder <path> --provider <postgresql|mongo|sqlite> --<database|db> <name> --table|doc <document_name>
+In this case the configuration should look like :
+	{folder:..., target:{}}
+2. Move data from one source to another
+	transport --config <file.json>
+	{source:{..},target:{..}} or [{source:{..},target:{..}},{source:{..},target:{..}}]
+	
 
 """
 import pandas as pd
@@ -46,11 +56,23 @@ if len(sys.argv) > 1:
 class Post(Process):
 	def __init__(self,**args):
 		super().__init__()
-		self.PROVIDER = args['target']['type']
-		self.writer = 	transport.factory.instance(**args['target'])
+		
+		if 'provider' not in args['target'] :
+			self.PROVIDER = args['target']['type']
+			self.writer = 	transport.factory.instance(**args['target'])
+		else:
+			self.PROVIDER = args['target']['provider']
+			args['target']['context'] = 'write'
+			
+			self.writer = transport.instance(**args['target'])
+		#
+		# If the table doesn't exists maybe create it ?
+		#
 		self.rows 	=	 args['rows']
+		
 	def run(self):
-		_info = {"values":self.rows} if 'couch' in self.PROVIDER else self.rows		
+		_info = {"values":self.rows} if 'couch' in self.PROVIDER else self.rows	
+		
 		self.writer.write(_info)
 		self.writer.close()
 
@@ -59,7 +81,19 @@ class ETL (Process):
 	def __init__(self,**_args):
 		super().__init__()
 		self.name 	= _args['id']
-		self.reader = transport.factory.instance(**_args['source'])
+		if 'provider' not in _args['source'] :
+			#@deprecate
+			self.reader = transport.factory.instance(**_args['source'])
+		else:
+			#
+			# This is the new interface
+			_args['source']['context'] = 'read'	
+			
+			self.reader = transport.instance(**_args['source'])
+		#
+		# do we have an sql query provided or not ....
+		# self.sql = _args['source']['sql'] if 'sql' in _args['source'] else None
+		self.cmd = _args['source']['cmd'] if 'cmd' in _args['source'] else None
 		self._oargs = _args['target'] #transport.factory.instance(**_args['target'])
 		self.JOB_COUNT =  _args['jobs']
 		self.jobs = []
@@ -68,8 +102,11 @@ class ETL (Process):
 		_args['name']  = self.name
 		print (_args)
 	def run(self):
-		idf = self.reader.read()
-		idf = pd.DataFrame(idf)
+		if self.cmd :
+			idf = self.reader.read(**self.cmd)
+		else:
+			idf = self.reader.read() 
+		idf = pd.DataFrame(idf)		
 		idf.columns = [str(name).replace("b'",'').replace("'","").strip() for name in idf.columns.tolist()]
 		self.log(rows=idf.shape[0],cols=idf.shape[1],jobs=self.JOB_COUNT)
 
@@ -79,7 +116,8 @@ class ETL (Process):
 		try:
 			self.log(module='write',action='partitioning')
 			rows = np.array_split(np.arange(idf.shape[0]),self.JOB_COUNT)
-			
+			#
+			# @TODO: locks
 			for i in rows :
 				_id = 'segment #'.join([str(rows.index(i)),self.name])
 				segment = idf.loc[i,:] #.to_dict(orient='records')

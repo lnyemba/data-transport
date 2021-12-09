@@ -71,16 +71,7 @@ from google.cloud import bigquery as bq
 import nzpy as nz   #--- netezza drivers
 import os
 
-RDBMS = {
-	
-    "postgresql":{"port":"5432","driver":pg},
-    "redshift":{"port":"5432","driver":pg},
-    "netezza":{"port":"5480","driver":nz},
-	"mysql":{"port":"3306","driver":my},
-	"mariadb":{"port":"3306","driver":my},
-	"mongodb":{"port":"27017","class":{"read"}},
-	"couchdb":{"port":"5984"}
-}
+
 class factory :
 	TYPE = {"sql":{"providers":["postgresql","mysql","neteeza","bigquery","mariadb","redshift"]}}
 	PROVIDERS = {
@@ -91,9 +82,14 @@ class factory :
         "bigquery":{"class":{"read":sql.BQReader,"write":sql.BQWriter}},
         "mysql":{"port":3306,"host":"localhost","default":{"type":"VARCHAR(256)"}},
         "mariadb":{"port":3306,"host":"localhost","default":{"type":"VARCHAR(256)"}},
-		"mongo":{"port":27017,"host":"localhost","class":{"read":mongo.MongoReader,"write":mongo.MongoWriter}},
-		"couch":{"port":5984,"host":"localhost","class":{"read":couch.CouchReader,"write":couch.CouchWriter}},
+		"mongo":{"port":27017,"host":"localhost","class":{"read":mongo.MongoReader,"write":mongo.MongoWriter}},		
+		"couch":{"port":5984,"host":"localhost","class":{"read":couch.CouchReader,"write":couch.CouchWriter}},		
         "netezza":{"port":5480,"driver":nz,"default":{"type":"VARCHAR(256)"}}}
+	#
+	# creating synonyms
+	PROVIDERS['mongodb'] = PROVIDERS['mongo']
+	PROVIDERS['couchdb'] = PROVIDERS['couch']
+	PROVIDERS['sqlite3'] = PROVIDERS['sqlite']
 
 	@staticmethod
 	def instance(**args):
@@ -126,14 +122,17 @@ class factory :
 		return anObject
 
 import time
-def instance(provider,context,**_args):
+def instance(**_args):
 	"""
 
 	@param provider	{file,sqlite,postgresql,redshift,bigquery,netezza,mongo,couch ...}
 	@param context	read|write|rw
 	@param _args	argument to got with the datastore (username,password,host,port ...)
 	"""
-	_id = context if context in ['read','write'] else None
+	
+	provider = _args['provider']
+	context = _args['context']
+	_id = context if context in ['read','write'] else 'read'
 	if _id :
 		args = {'provider':_id}
 		for key in factory.PROVIDERS[provider] :

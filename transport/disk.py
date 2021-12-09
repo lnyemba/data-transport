@@ -114,6 +114,7 @@ class DiskWriter(Writer):
 class SQLiteReader (DiskReader):
 	def __init__(self,**args):
 		DiskReader.__init__(self,**args)
+		self.path  = args['database'] if 'database' in args else args['path']
 		self.conn = sqlite3.connect(self.path,isolation_level=None)
 		self.conn.row_factory = sqlite3.Row
 		self.table = args['table']
@@ -145,7 +146,7 @@ class SQLiteWriter(DiskWriter) :
 		DiskWriter.__init__(self,**args)
 		self.table = args['table']
 		
-		self.conn = sqlite3.connect(self.path,isolation_level=None)
+		self.conn = sqlite3.connect(self.path,isolation_level="IMMEDIATE")
 		self.conn.row_factory = sqlite3.Row
 		self.fields = args['fields'] if 'fields' in args else []
 		
@@ -184,20 +185,27 @@ class SQLiteWriter(DiskWriter) :
 		if not self.fields :
 			self.init(list(info.keys()))
 		
-		if type(info) != list :
+		if type(info) == object :
 			info = [info]
+		elif type(info) == pd.DataFrame :
+			info = info.to_dict(orient='records')
 		
 		SQLiteWriter.LOCK.acquire()
 		try:
-			cursor = self.conn.cursor()	
-			sql = " " .join(["INSERT INTO ",self.table,"(", ",".join(self.fields) ,")", "values(':values')"])
-			for row in info :
-				stream = json.dumps(row)
-				stream = stream.replace("'","''")
-				cursor.execute(sql.replace(":values",stream) )
 			
-			# self.conn.commit()
+			cursor = self.conn.cursor()	
+			sql = " " .join(["INSERT INTO ",self.table,"(", ",".join(self.fields) ,")", "values(:values)"])
+			for row in info :
+				stream =["".join(["",value,""]) if type(value) == str else value for value in row.values()]
+				stream = json.dumps(stream).replace("[","").replace("]","")
+				
+				
+				self.conn.execute(sql.replace(":values",stream) )
+				# cursor.commit()
+			
+			self.conn.commit()
 				# print (sql)
 		except Exception as e :
+			print (e)
 			pass
 		SQLiteWriter.LOCK.release()
