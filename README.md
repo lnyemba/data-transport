@@ -1,14 +1,31 @@
 # Introduction
 
-This project implements an abstraction of objects that can have access to a variety of data stores, implementing read/write with a simple interface against specific various data-sources. The supported data sources implement functionalities against :
+This project implements an abstraction of objects that can have access to a variety of data stores, implementing read/write with a simple and expressive interface. This abstraction works with **NoSQL** and **SQL** data stores and leverages **pandas**
 
-    - Rabbitmq-server
-    - Couchdb-server
-    - Mongodb-server
-    - Http Session : {csv,tab,pipe,sql}
-    - Disk{Reader|Writer} : csv, tab, pipe, sql on disk
+The supported data store providers :
 
-Such an interface is used to facilitate data transport in and out of a store for whatever an application may need (log, session management, ...)
+| Provider | Underlying Drivers | Description |
+| ---- | ---| ---- |
+| sqlite| Native SQLite|SQLite3|
+| postgresql| psycopg2 | PostgreSQL
+| redshift| psycopg2 | Amazon Redshift
+| netezza| nzpsql | IBM Neteeza
+| Files: CSV, TSV| pandas| pandas data-frame
+| Couchdb| cloudant | Couchbase/Couchdb
+| mongodb| pymongo | Mongodb
+| mysql| mysql| Mysql
+| bigquery| google-bigquery| Google BigQuery
+| mariadb| mysql| Mariadb
+| rabbitmq|pika| RabbitMQ Publish/Subscribe
+
+# Why Use Data-Transport ?
+
+Mostly data scientists that don't really care about the underlying database and would like to manipulate data transparently.
+
+1. Familiarity with **pandas data-frames**
+2. Connectivity **drivers** are included
+3. Useful for ETL
+
 
 ### Installation
 
@@ -21,23 +38,26 @@ Binaries and eggs will be provided later on
 
 ### Usage
 
-The basic usage revolves around a factory class (to be a singleton)
+In your code, perform the 
 
     import transport
     from transport import factory
     #
     # importing a mongo reader
     args = {"host":"<host>:<port>","dbname":"<database>","doc":"<doc_id>",["username":"<username>","password":"<password>"]}
-    mreader = factory.instance(type='mongo.MonoReader',args=args)
+    reader = factory.instance(provider='mongodb',doc=<mydoc>,db=<db-name>)
     #
-    # reading a document and executing a view
+    # reading a document i.e just applying a find (no filters)
     #
-    document    = mreader.read()
-    result      = mreader.view(name)
+    df    = mreader.read()  #-- pandas data frame
+    df.head()
+
     #
-    # importing a couchdb reader
-    args = {"url":"<http://host>:<port>","dbname":"<database>","doc":"<doc_id>","username":"<username>","password":"<password>"}
-    creader     = factory.instance(type='couch.CouchReader',args=args)
+    # reading from postgresql
+    
+    pgreader     = factory.instance(type='postgresql',database=<database>,table=<table_name>)
+    pg.read()   #-- will read the table by executing a SELECT
+    pg.read(sql=<sql query>)
     
     #
     # Reading a document and executing a view
