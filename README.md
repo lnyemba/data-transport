@@ -5,10 +5,11 @@ This project implements an abstraction of objects that can have access to a vari
 The supported data store providers :
 
 | Provider | Underlying Drivers | Description |
-| ---- | ---| ---- |
+| :---- | :----: | ----: |
 | sqlite| Native SQLite|SQLite3|
 | postgresql| psycopg2 | PostgreSQL
 | redshift| psycopg2 | Amazon Redshift
+| s3| boto3 | Amazon Simple Storage Service
 | netezza| nzpsql | IBM Neteeza
 | Files: CSV, TSV| pandas| pandas data-frame
 | Couchdb| cloudant | Couchbase/Couchdb
@@ -24,33 +25,51 @@ Mostly data scientists that don't really care about the underlying database and 
 
 1. Familiarity with **pandas data-frames**
 2. Connectivity **drivers** are included
-3. Useful for ETL
+3. Useful for data migrations or ETL
 
+# Usage
 
-### Installation
+## Installation
 
-Within the virtual environment perform the following command:
+Within the virtual environment perform the following :
 
     pip install git+https://dev.the-phi.com/git/steve/data-transport.git
 
-Binaries and eggs will be provided later on
 
 
-### Usage
+## In code (Embedded)
 
-In your code, perform the 
+**Reading/Writing Mongodb**
 
-    import transport
-    from transport import factory
-    #
-    # importing a mongo reader
-    args = {"host":"<host>:<port>","dbname":"<database>","doc":"<doc_id>",["username":"<username>","password":"<password>"]}
-    reader = factory.instance(provider='mongodb',doc=<mydoc>,db=<db-name>)
-    #
-    # reading a document i.e just applying a find (no filters)
-    #
-    df    = mreader.read()  #-- pandas data frame
-    df.head()
+For this example we assume here we are tunneling through port 27018 and there is not access control:
+
+```
+import transport
+reader = factory.instance(provider='mongodb',context='read',host='localhost',port='27018',db='example',doc='logs')
+
+df = reader.read() #-- reads the entire collection
+print (df.head())
+#
+#-- Applying mongodb command
+PIPELINE = [{"$group":{"_id":None,"count":{"$sum":1}}}]
+_command_={"cursor":{},"allowDiskUse":True,"aggregate":"logs","pipeline":PIPLINE}
+df = reader.read(mongo=_command)
+print (df.head())
+reader.close()
+```
+**Writing to Mongodb**
+---
+```
+import transport
+improt pandas as pd
+writer = factory.instance(provider='mongodb',context='write',host='localhost',port='27018',db='example',doc='logs')
+
+df = pd.DataFrame({"names":["steve","nico"],"age":[40,30]})
+writer.write(df)
+writer.close()
+```
+
+
 
     #
     # reading from postgresql
