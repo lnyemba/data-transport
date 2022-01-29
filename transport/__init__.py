@@ -1,45 +1,24 @@
 """
-Data Transport - 1.0
-Steve L. Nyemba, The Phi Technology LLC
+Data Transport, The Phi Technology LLC
+Steve L. Nyemba, steve@the-phi.com
 
-This module is designed to serve as a wrapper to a set of supported data stores :
+This library is designed to serve as a wrapper to a set of supported data stores :
     - couchdb
     - mongodb
     - Files (character delimited)
     - Queues (RabbmitMq)
     - Session (Flask)
     - s3
+	- sqlite
 The supported operations are read/write and providing meta data to the calling code
 Requirements :
 	pymongo
 	boto
 	couldant
 The configuration for the data-store is as follows :
-	couchdb:
-		{
-			args:{
-				url:<url>,
-				username:<username>,
-				password:<password>,
-				dbname:<database>,
-				doc:<document id>
-			}
-		}
-	RabbitMQ:
-		{
-			
-		}
-	Mongodb:
-	{
-		args:{
-			host:<url>, #localhost:27017
-			username:<username>,
-			password:<password>,
-			dbname:<database>,
-			doc:<document id>s
-
-		}
-	}
+	e.g:
+	mongodb
+		provider:'mongodb',[port:27017],[host:localhost],db:<name>,doc:<_name>,context:<read|write>
 """
 __author__ = 'The Phi Technology'
 import pandas 	as pd
@@ -90,9 +69,17 @@ class factory :
 	PROVIDERS['mongodb'] = PROVIDERS['mongo']
 	PROVIDERS['couchdb'] = PROVIDERS['couch']
 	PROVIDERS['sqlite3'] = PROVIDERS['sqlite']
-
+	
 	@staticmethod
-	def instance(**args):
+	def instance(**_args):
+		if 'type' in _args :
+			#
+			# Legacy code being returned
+			return factory._instance(**_args);
+		else:
+			return instance(**_args)
+	@staticmethod
+	def _instance(**args):
 		"""
 		This class will create an instance of a transport when providing 
 		:type	name of the type we are trying to create
@@ -131,7 +118,7 @@ def instance(**_args):
 	"""
 	
 	provider = _args['provider']
-	context = _args['context']
+	context = _args['context']if 'context' in _args else None
 	_id = context if context in ['read','write'] else 'read'
 	if _id :
 		args = {'provider':_id}
@@ -142,6 +129,7 @@ def instance(**_args):
 			args[key] = value
 		#
 		#
+		
 		args = dict(args,**_args)
 		
 		# print (provider in factory.PROVIDERS)
@@ -149,6 +137,7 @@ def instance(**_args):
 			pointer = factory.PROVIDERS[provider]['class'][_id] 
 		else:
 			pointer = sql.SQLReader if _id == 'read' else sql.SQLWriter
+		
 		return pointer(**args)
 
 	return None

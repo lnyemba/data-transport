@@ -75,7 +75,15 @@ class SQLRW :
             _info['securityLevel'] = 0
             del _info['dbname']
         self.conn = _handler.connect(**_info)
-    
+    def has(self,**_args):
+        found = False
+        try:
+            table = _args['table']
+            sql = "SELECT * FROM :table LIMIT 1".replace(":table",table)
+            found = pd.read_sql(sql,self.conn).shape[0]
+        except Exception as e:
+            pass
+        return found
     def isready(self):
         _sql = "SELECT * FROM :table LIMIT 1".replace(":table",self.table)
         try:
@@ -201,8 +209,14 @@ class SQLWriter(SQLRW,Writer):
                     # values = [ "".join(["'",str(_row[key]),"'"]) if np.nan(_row[key]).isnumeric() else str(_row[key]) for key in _row]
                     # print (values)
                     query = _sql.replace(":fields",",".join(fields)).replace(":values",values)
-                    
-                    cursor.execute(query,_row.values())
+                    if type(info) == pd.DataFrame :
+                        _values = info.values.tolist()
+                    elif type(info) == list and type(info[0]) == dict:
+                        print ('........')
+                        _values = [tuple(item.values()) for item in info]
+                    else:
+                        _values = info;
+                    cursor.execute(query,_values)
                 
 
                 pass
@@ -210,14 +224,23 @@ class SQLWriter(SQLRW,Writer):
                 _fields = ",".join(self.fields)
                 # _sql = _sql.replace(":fields",_fields)
                 # _sql = _sql.replace(":values",",".join(["%("+name+")s" for name in self.fields]))
-                _sql = _sql.replace("(:fields)","")
+                # _sql = _sql.replace("(:fields)","")
+                _sql = _sql.replace(":fields",_fields)
                 values = ", ".join("?"*len(self.fields)) if self._provider == 'netezza' else ",".join(["%s" for name in self.fields])
                 _sql = _sql.replace(":values",values)
-                
-                # for row in info :
-                #     values = ["'".join(["",value,""]) if not str(value).isnumeric() else value for value in row.values()]
-                
-                cursor.executemany(_sql,info)   
+                if type(info) == pd.DataFrame :
+                    _info = info[self.fields].values.tolist()
+                elif  type(info) == dict :
+                    _info = info.values()
+                else:
+                    # _info = []
+
+                    _info = pd.DataFrame(info)[self.fields].values.tolist()
+                    # for row in info :
+                        
+                    #     if type(row) == dict :
+                    #         _info.append( list(row.values()))
+                cursor.executemany(_sql,_info)   
             
             # self.conn.commit()
         except Exception as e:
@@ -250,6 +273,13 @@ class BigQuery:
         client = bq.Client.from_service_account_json(self.path)
         ref     = client.dataset(self.dataset).table(table)
         return client.get_table(ref).schema
+    def has(self,**_args):
+        found = False
+        try:
+            found = self.meta(**_args) is not None
+        except Exception as e:
+            pass
+            return found
 class BQReader(BigQuery,Reader) :
     def __init__(self,**_args):
         

@@ -111,13 +111,47 @@ class DiskWriter(Writer):
 			pass
 		finally:
 			DiskWriter.THREAD_LOCK.release()
-class SQLiteReader (DiskReader):
-	def __init__(self,**args):
-		DiskReader.__init__(self,**args)
-		self.path  = args['database'] if 'database' in args else args['path']
-		self.conn = sqlite3.connect(self.path,isolation_level=None)
+class SQLite :
+	def __init__(self,**_args) :
+		self.path  = _args['database'] if 'database' in _args else _args['path']
+		self.conn = sqlite3.connect(self.path,isolation_level="IMMEDIATE")
 		self.conn.row_factory = sqlite3.Row
-		self.table = args['table']
+		self.fields = _args['fields'] if 'fields' in _args else []
+	def has (self,**_args):
+		found = False
+		try:
+			if 'table' in _args :
+				table = _args['table']
+				sql = "SELECT * FROM :table limit 1".replace(":table",table) 
+				_df = pd.read_sql(sql,self.conn)
+				found = _df.columns.size > 0
+		except Exception as e:
+			pass
+		return found
+	def close(self):
+		try:
+			self.conn.close()
+		except Exception as e :
+			print(e)
+	def apply(self,sql):
+		try:
+			if not sql.lower().startswith('select'):
+				cursor = self.conn.cursor()
+				cursor.execute(sql)
+				cursor.close()
+				self.conn.commit()
+			else:
+				return pd.read_sql(sql,self.conn)
+		except Exception as e:
+			print (e)
+class SQLiteReader (SQLite,DiskReader):
+	def __init__(self,**args):
+		super().__init__(**args)
+		# DiskReader.__init__(self,**args)
+		# self.path  = args['database'] if 'database' in args else args['path']
+		# self.conn = sqlite3.connect(self.path,isolation_level=None)
+		# self.conn.row_factory = sqlite3.Row
+		self.table = args['table'] if 'table' in args else None
 	def read(self,**args):
 		if 'sql' in args :
 			sql = args['sql']			
@@ -135,7 +169,7 @@ class SQLiteReader (DiskReader):
 		except Exception as e :
 			pass
 
-class SQLiteWriter(DiskWriter) :
+class SQLiteWriter(SQLite,DiskWriter) :
 	connection = None
 	LOCK = Lock()
 	def __init__(self,**args):
@@ -143,12 +177,13 @@ class SQLiteWriter(DiskWriter) :
 		:path
 		:fields json|csv
 		"""
-		DiskWriter.__init__(self,**args)
-		self.table = args['table']
+		# DiskWriter.__init__(self,**args)
+		super().__init__(**args)
+		self.table = args['table'] if 'table' in args else None
 		
-		self.conn = sqlite3.connect(self.path,isolation_level="IMMEDIATE")
-		self.conn.row_factory = sqlite3.Row
-		self.fields = args['fields'] if 'fields' in args else []
+		# self.conn = sqlite3.connect(self.path,isolation_level="IMMEDIATE")
+		# self.conn.row_factory = sqlite3.Row
+		# self.fields = args['fields'] if 'fields' in args else []
 		
 		if self.fields and not self.isready():
 			self.init(self.fields)
@@ -185,7 +220,7 @@ class SQLiteWriter(DiskWriter) :
 		if not self.fields :
 			self.init(list(info.keys()))
 		
-		if type(info) == object :
+		if type(info) == dict :
 			info = [info]
 		elif type(info) == pd.DataFrame :
 			info = info.to_dict(orient='records')
@@ -196,6 +231,8 @@ class SQLiteWriter(DiskWriter) :
 			cursor = self.conn.cursor()	
 			sql = " " .join(["INSERT INTO ",self.table,"(", ",".join(self.fields) ,")", "values(:values)"])
 			for row in info :
+				print (row)
+				print (row.values())
 				stream =["".join(["",value,""]) if type(value) == str else value for value in row.values()]
 				stream = json.dumps(stream).replace("[","").replace("]","")
 				
