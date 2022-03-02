@@ -80,7 +80,9 @@ class SQLRW :
         try:
             table = _args['table']
             sql = "SELECT * FROM :table LIMIT 1".replace(":table",table)
-            found = pd.read_sql(sql,self.conn).shape[0]
+            found = pd.read_sql(sql,self.conn).shape[0] 
+            found = True
+
         except Exception as e:
             pass
         return found
