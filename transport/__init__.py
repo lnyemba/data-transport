@@ -26,7 +26,7 @@ import numpy 	as np
 import json
 import importlib 
 import sys 
-
+import sqlalchemy
 if sys.version_info[0] > 2 : 
     from transport.common import Reader, Writer #, factory
     from transport import disk
@@ -59,8 +59,8 @@ class factory :
         "postgresql":{"port":5432,"host":"localhost","database":os.environ['USER'],"driver":pg,"default":{"type":"VARCHAR"}},
         "redshift":{"port":5432,"host":"localhost","database":os.environ['USER'],"driver":pg,"default":{"type":"VARCHAR"}},
         "bigquery":{"class":{"read":sql.BQReader,"write":sql.BQWriter}},
-        "mysql":{"port":3306,"host":"localhost","default":{"type":"VARCHAR(256)"}},
-        "mariadb":{"port":3306,"host":"localhost","default":{"type":"VARCHAR(256)"}},
+        "mysql":{"port":3306,"host":"localhost","default":{"type":"VARCHAR(256)"},"driver":my},
+        "mariadb":{"port":3306,"host":"localhost","default":{"type":"VARCHAR(256)"},"driver":my},
 		"mongo":{"port":27017,"host":"localhost","class":{"read":mongo.MongoReader,"write":mongo.MongoWriter}},		
 		"couch":{"port":5984,"host":"localhost","class":{"read":couch.CouchReader,"write":couch.CouchWriter}},		
         "netezza":{"port":5480,"driver":nz,"default":{"type":"VARCHAR(256)"}}}
@@ -137,7 +137,38 @@ def instance(**_args):
 			pointer = factory.PROVIDERS[provider]['class'][_id] 
 		else:
 			pointer = sql.SQLReader if _id == 'read' else sql.SQLWriter
-		
+		#
+		# Let us try to establish an sqlalchemy wrapper
+		try:
+			host = ''
+			if provider not in ['bigquery','mongodb','couchdb','sqlite'] :
+				#
+				# In these cases we are assuming RDBMS and thus would exclude NoSQL and BigQuery
+				username = args['username'] if 'username' in args else ''
+				password = args['password'] if 'password' in args else ''
+				if username == '' :
+					account = ''
+				else:
+					account = username + ':'+password+'@'
+				host = args['host'] 
+				if 'port' in args :
+					host = host+":"+str(args['port'])
+				
+				database =  args['database']	
+			elif provider == 'sqlite':
+				account = ''
+				host = ''
+				database = args['path'] if 'path' in args else args['database']
+			if provider not in ['mongodb','couchdb','bigquery'] :
+				uri = ''.join([provider,"://",account,host,'/',database])
+				
+				e = sqlalchemy.create_engine (uri)
+				args['sqlalchemy'] = e 
+			#
+			# @TODO: Include handling of bigquery with SQLAlchemy
+		except Exception as e:
+			print (e)
+
 		return pointer(**args)
 
 	return None
