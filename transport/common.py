@@ -41,7 +41,7 @@ class Reader (IO):
 	"""
 	def __init__(self):
 		pass
-	def meta(self):
+	def meta(self,**_args):
 		"""
 		This function is intended to return meta-data associated with what has just been read
 		@return object of meta data information associated with the content of the store
