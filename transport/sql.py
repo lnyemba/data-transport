@@ -299,7 +299,7 @@ class SQLWriter(SQLRW,Writer):
                 if self._engine :
                     # pd.to_sql(_info,self._engine)
                     
-                    rows = _info.to_sql(table,self._engine,if_exists='append',index=False)
+                    rows = _info.to_sql(table,self._engine,schema=self.schema,if_exists='append',index=False)
                     
                 else:
                     _fields = ",".join(self.fields)
