@@ -93,7 +93,7 @@ class SQLRW :
         found = False
         try:
             
-            table = self._tablename(_args['table'])
+            table = self._tablename(_args['table'])if 'table' in _args else self._tablename(self.table)
             sql = "SELECT * FROM :table LIMIT 1".replace(":table",table)
             if self._engine :
                 _conn = self._engine.connect()
@@ -192,9 +192,9 @@ class SQLWriter(SQLRW,Writer):
             fields = _args['fields']  
             # table = self._tablename(self.table)          
             sql = " ".join(["CREATE TABLE",table," (", ",".join([ name +' '+ self._dtype for name in fields]),")"])
-            print (sql)
+            
         else:
-            schema = _args['schema']
+            schema = _args['schema'] if 'schema' in _args else ''
             
             _map = _args['map'] if 'map' in _args else {}
             sql = [] # ["CREATE TABLE ",_args['table'],"("]
@@ -214,7 +214,7 @@ class SQLWriter(SQLRW,Writer):
             cursor.execute(sql)
         except Exception as e :
             print (e)
-            print (sql)
+            # print (sql)
             pass
         finally:
             # cursor.close()
@@ -296,18 +296,18 @@ class SQLWriter(SQLRW,Writer):
                     _info = pd.DataFrame(info)
             
                 
-                # if self._engine :
-                #     # pd.to_sql(_info,self._engine)
-                #     print (_info.columns.tolist())
-                #     rows = _info.to_sql(table,self._engine,if_exists='append',index=False)
-                #     print ([rows])
-                # else:
-                _fields = ",".join(self.fields)
-                _sql = _sql.replace(":fields",_fields)
-                values = ", ".join("?"*len(self.fields)) if self._provider == 'netezza' else ",".join(["%s" for name in self.fields])
-                _sql = _sql.replace(":values",values)
+                if self._engine :
+                    # pd.to_sql(_info,self._engine)
                     
-                cursor.executemany(_sql,_info.values.tolist())  
+                    rows = _info.to_sql(table,self._engine,if_exists='append',index=False)
+                    
+                else:
+                    _fields = ",".join(self.fields)
+                    _sql = _sql.replace(":fields",_fields)
+                    values = ", ".join("?"*len(self.fields)) if self._provider == 'netezza' else ",".join(["%s" for name in self.fields])
+                    _sql = _sql.replace(":values",values)
+                        
+                    cursor.executemany(_sql,_info.values.tolist())  
                 # cursor.commit() 
             
             # self.conn.commit()
@@ -338,7 +338,7 @@ class BigQuery:
         :param table    name of the name WITHOUT including dataset
         :param sql      sql query to be pulled,
         """
-        table = _args['table']
+        table = _args['table'] 
         
         ref     = self.client.dataset(self.dataset).table(table)
         return self.client.get_table(ref).schema

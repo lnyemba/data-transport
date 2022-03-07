@@ -68,11 +68,25 @@ class Post(Process):
 		#
 		# If the table doesn't exists maybe create it ?
 		#
-		self.rows 	=	 args['rows']
+		self.rows 	=	 args['rows'].fillna('')
+		
 		
 	def run(self):
 		_info = {"values":self.rows} if 'couch' in self.PROVIDER else self.rows	
-		
+		ltypes = self.rows.dtypes.values
+		columns = self.rows.dtypes.index.tolist()
+		if not self.writer.has() :
+
+			
+			self.writer.make(fields=columns)
+			# self.log(module='write',action='make-table',input={"name":self.writer.table})
+		for name in columns :
+			if _info[name].dtype in ['int32','int64','int','float','float32','float64'] :
+				value = 0
+			else:
+				value = ''
+			_info[name] = _info[name].fillna(value)
+		print (_info)
 		self.writer.write(_info)
 		self.writer.close()
 
@@ -107,6 +121,8 @@ class ETL (Process):
 		else:
 			idf = self.reader.read() 
 		idf = pd.DataFrame(idf)		
+		# idf = idf.replace({np.nan: None}, inplace = True)
+
 		idf.columns = [str(name).replace("b'",'').replace("'","").strip() for name in idf.columns.tolist()]
 		self.log(rows=idf.shape[0],cols=idf.shape[1],jobs=self.JOB_COUNT)
 
@@ -114,6 +130,8 @@ class ETL (Process):
 		# writing the data to a designated data source 
 		#
 		try:
+			
+			
 			self.log(module='write',action='partitioning')
 			rows = np.array_split(np.arange(idf.shape[0]),self.JOB_COUNT)
 			#
@@ -152,9 +170,13 @@ if __name__ == '__main__' :
 
 		_config['jobs']  = 10 if 'jobs' not in SYS_ARGS else int(SYS_ARGS['jobs'])
 		etl = ETL (**_config)
-		etl.start()
-		procs.append(etl)
+		if not index :
+			
+			etl.start()
+			procs.append(etl)
 		if index and _info.index(_config) == index :
+			procs = [etl]
+			etl.start()
 			break
 	#
 	#
