@@ -162,7 +162,7 @@ def instance(**_args):
 			if provider not in ['mongodb','couchdb','bigquery'] :
 				uri = ''.join([provider,"://",account,host,'/',database])
 				
-				e = sqlalchemy.create_engine (uri)
+				e = sqlalchemy.create_engine (uri,future=True)
 				args['sqlalchemy'] = e 
 			#
 			# @TODO: Include handling of bigquery with SQLAlchemy

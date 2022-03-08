@@ -75,10 +75,10 @@ class Post(Process):
 		_info = {"values":self.rows} if 'couch' in self.PROVIDER else self.rows	
 		ltypes = self.rows.dtypes.values
 		columns = self.rows.dtypes.index.tolist()
-		if not self.writer.has() :
+		# if not self.writer.has() :
 
 			
-			self.writer.make(fields=columns)
+			# self.writer.make(fields=columns)
 			# self.log(module='write',action='make-table',input={"name":self.writer.table})
 		for name in columns :
 			if _info[name].dtype in ['int32','int64','int','float','float32','float64'] :
@@ -86,7 +86,7 @@ class Post(Process):
 			else:
 				value = ''
 			_info[name] = _info[name].fillna(value)
-		print (_info)
+		
 		self.writer.write(_info)
 		self.writer.close()
 
@@ -94,6 +94,7 @@ class Post(Process):
 class ETL (Process):
 	def __init__(self,**_args):
 		super().__init__()
+		
 		self.name 	= _args['id']
 		if 'provider' not in _args['source'] :
 			#@deprecate
@@ -133,18 +134,24 @@ class ETL (Process):
 			
 			
 			self.log(module='write',action='partitioning')
-			rows = np.array_split(np.arange(idf.shape[0]),self.JOB_COUNT)
+			rows = np.array_split(np.arange(0,idf.shape[0]),self.JOB_COUNT)
+			
 			#
 			# @TODO: locks
-			for i in rows :
-				_id = 'segment #'.join([str(rows.index(i)),self.name])
-				segment = idf.loc[i,:] #.to_dict(orient='records')
+			for i in np.arange(self.JOB_COUNT) :
+				print ()
+				print (i)
+				_id = 'segment # '.join([str(i),' ',self.name])
+				indexes = rows[i]
+				segment = idf.loc[indexes,:].copy() #.to_dict(orient='records')
 				proc = Post(target = self._oargs,rows = segment,name=_id)
 				self.jobs.append(proc)
 				proc.start()
 
-			self.log(module='write',action='working ...',name=self.name)
-			
+				self.log(module='write',action='working',segment=_id)
+			# while poc :
+			# 	proc = [job for job in proc if job.is_alive()]
+			# 	time.sleep(1)
 		except Exception as e:
 			print (e)
 		
@@ -168,13 +175,16 @@ if __name__ == '__main__' :
 		if 'source' in SYS_ARGS :
 			_config['source'] = {"type":"disk.DiskReader","args":{"path":SYS_ARGS['source'],"delimiter":","}}
 
-		_config['jobs']  = 10 if 'jobs' not in SYS_ARGS else int(SYS_ARGS['jobs'])
+		_config['jobs']  = 3 if 'jobs' not in SYS_ARGS else int(SYS_ARGS['jobs'])
 		etl = ETL (**_config)
-		if not index :
+		if index is None:	
 			
 			etl.start()
 			procs.append(etl)
-		if index and _info.index(_config) == index :
+		
+		elif _info.index(_config) == index :
+			
+			# print (_config)
 			procs = [etl]
 			etl.start()
 			break
