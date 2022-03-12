@@ -125,9 +125,9 @@ class SQLRW :
         _out = None
         try:
             if "select" in _sql.lower() :
-                cursor.close()
-                _conn = self._engine.connect() if self._engine else self.conn
-                return pd.read_sql(_sql,_conn)
+                
+                # _conn = self._engine if self._engine else self.conn
+                return pd.read_sql(_sql,self.conn)
             else:
                 # Executing a command i.e no expected return values ...
                 cursor.execute(_sql)
@@ -151,7 +151,8 @@ class SQLReader(SQLRW,Reader) :
         if 'sql' in _args :            
             _sql = (_args['sql'])
         else:
-            _sql = "SELECT :fields FROM "+self.table
+            table = self.table if self.table is not None else _args['table']
+            _sql = "SELECT :fields FROM "+self._tablename(table)
             if 'filter' in _args :
                 _sql = _sql +" WHERE "+_args['filter']
             _fields = '*' if not self.fields else ",".join(self.fields) 
@@ -220,7 +221,7 @@ class SQLWriter(SQLRW,Writer):
             # cursor.close()
             self.conn.commit()
             pass
-    def write(self,info):
+    def write(self,info,**_args):
         """
         :param info writes a list of data to a given set of fields
         """
@@ -324,7 +325,8 @@ class BQReader(BigQuery,Reader) :
     def __init__(self,**_args):
         
         super().__init__(**_args)    
-
+    def apply(self,sql):
+        self.read(sql=sql)
         pass
     def read(self,**_args):
         SQL = None
@@ -359,6 +361,7 @@ class BQWriter(BigQuery,Writer):
         try:
             if self.parallel or 'lock' in _args :
                 BQWriter.lock.acquire()
+            _args['table'] = self.table if 'table' not in _args else _args['table']
             self._write(_info,**_args)
         finally:
             if self.parallel:

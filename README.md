@@ -35,9 +35,44 @@ Within the virtual environment perform the following :
 
     pip install git+https://dev.the-phi.com/git/steve/data-transport.git
 
+Once installed **data-transport** can be used as a library in code or a command line interface (CLI)
 
+## Data Transport as a Library (in code)
+---
 
-## In code (Embedded)
+The data-transport can be used within code as a library 
+* Read/Write against [mongodb](https://github.com/lnyemba/data-transport/wiki/mongodb)
+* Read/Write against tranditional [RDBMS](https://github.com/lnyemba/data-transport/wiki/rdbms)
+* Read/Write against [bigquery](https://github.com/lnyemba/data-transport/wiki/bigquery)
+
+The read/write functions make data-transport a great candidate for **data-science**; **data-engineering** or all things pertaining to data. It enables operations across multiple data-stores(relational or not)
+
+## Command Line Interface (CLI)
+---
+The CLI program is called **transport** and it requires a configuratio file
+
+```
+[
+    {
+    "id":"logs",
+    "source":{
+        "provider":"postgresql","context":"read","database":"mydb",
+        "cmd":{"sql":"SELECT * FROM logs limit 10"}
+        },
+    "target":{
+        "provider":"bigquery","private_key":"/bgqdrive/account/bq-service-account-key.json",
+        "dataset":"mydataset"
+        }    
+    },
+    
+]
+```
+
+Assuming the above content is stored in a file called **etl-config.json**, we would perform the following in a terminal window:
+
+```
+[steve@data-transport]$ transport --config ./etl-config.json [--index <value>]
+```
 
 **Reading/Writing Mongodb**
 
