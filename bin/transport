@@ -63,8 +63,8 @@ class Post(Process):
 		else:
 			self.PROVIDER = args['target']['provider']
 			args['target']['context'] = 'write'
-			
-			self.writer = transport.instance(**args['target'])
+			self.store = args['target']
+			# self.writer = transport.instance(**args['target'])
 		#
 		# If the table doesn't exists maybe create it ?
 		#
@@ -86,9 +86,9 @@ class Post(Process):
 			else:
 				value = ''
 			_info[name] = _info[name].fillna(value)
-		
-		self.writer.write(_info)
-		self.writer.close()
+		writer = transport.factory.instance(**self.store)
+		writer.write(_info)
+		writer.close()
 
 		
 class ETL (Process):
@@ -139,11 +139,11 @@ class ETL (Process):
 			#
 			# @TODO: locks
 			for i in np.arange(self.JOB_COUNT) :
-				print ()
-				print (i)
 				_id = 'segment # '.join([str(i),' ',self.name])
 				indexes = rows[i]
 				segment = idf.loc[indexes,:].copy() #.to_dict(orient='records')
+				if segment.shape[0] == 0 :
+					continue
 				proc = Post(target = self._oargs,rows = segment,name=_id)
 				self.jobs.append(proc)
 				proc.start()

@@ -20,7 +20,9 @@ else:
 	from common import Reader, Writer
 import json
 import re
+from multiprocessing import Lock, RLock
 class Mongo :
+    lock = RLock()
     """
     Basic mongodb functions are captured here
     """
@@ -44,6 +46,7 @@ class Mongo :
         self.uid    = args['doc']  #-- document identifier
         self.dbname = args['dbname'] if 'dbname' in args else args['db']
         self.db = self.client[self.dbname]
+        self._lock = False if 'lock' not in args else args['lock']
         
     def isready(self):
         p = self.dbname in self.client.list_database_names() 
@@ -144,10 +147,17 @@ class MongoWriter(Mongo,Writer):
         # if type(info) == list :
         #     self.db[self.uid].insert_many(info)
         # else:
-        if type(info) == list or type(info) == pd.DataFrame :
-            self.db[self.uid].insert_many(info if type(info) == list else info.to_dict(orient='records'))
-        else:
-            self.db[self.uid].insert_one(info)
+        try:
+
+            if self._lock :
+                Mongo.lock.acquire()
+            if type(info) == list or type(info) == pd.DataFrame :
+                self.db[self.uid].insert_many(info if type(info) == list else info.to_dict(orient='records'))
+            else:
+                self.db[self.uid].insert_one(info)
+        finally:
+            if self._lock :
+                Mongo.lock.release()
     def set(self,document):
         """
         if no identifier is provided the function will delete the entire collection and set the new document.
