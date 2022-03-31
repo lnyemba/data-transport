@@ -195,7 +195,7 @@ class SQLWriter(SQLRW,Writer):
             sql = " ".join(["CREATE TABLE",table," (", ",".join([ name +' '+ self._dtype for name in fields]),")"])
             
         else:
-            schema = _args['schema'] if 'schema' in _args else ''
+            schema = _args['schema'] if 'schema' in _args else []
             
             _map = _args['map'] if 'map' in _args else {}
             sql = [] # ["CREATE TABLE ",_args['table'],"("]
@@ -208,7 +208,7 @@ class SQLWriter(SQLRW,Writer):
             # table = self._tablename(_args['table'])
             sql = ["CREATE TABLE ",table,"( ",sql," )"]
             sql = " ".join(sql)
-            # sql = " ".join(["CREATE TABLE",_args['table']," (", ",".join([ schema[i]['name'] +' '+ (schema[i]['type'] if schema[i]['type'] not in _map else _map[schema[i]['type'] ]) for i in range(0,N)]),")"])
+            
         cursor = self.conn.cursor()
         try:
             
@@ -262,6 +262,7 @@ class SQLWriter(SQLRW,Writer):
                 
                 return
             SQLRW.lock.acquire()
+            
             if self._engine is not None:
                 # pd.to_sql(_info,self._engine)
                 if self.schema in ['',None] :

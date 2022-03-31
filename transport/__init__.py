@@ -164,6 +164,7 @@ def instance(**_args):
 				
 				e = sqlalchemy.create_engine (uri,future=True)
 				args['sqlalchemy'] = e 
+			
 			#
 			# @TODO: Include handling of bigquery with SQLAlchemy
 		except Exception as e:
