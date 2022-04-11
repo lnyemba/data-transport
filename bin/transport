@@ -53,148 +53,29 @@ if len(sys.argv) > 1:
         
         i += 2
 
-class Post(Process):
-	def __init__(self,**args):
-		super().__init__()
-		
-		if 'provider' not in args['target'] :
-			self.PROVIDER = args['target']['type']
-			self.writer = 	transport.factory.instance(**args['target'])
-		else:
-			self.PROVIDER = args['target']['provider']
-			args['target']['context'] = 'write'
-			self.store = args['target']
-			# self.writer = transport.instance(**args['target'])
-		#
-		# If the table doesn't exists maybe create it ?
-		#
-		self.rows 	=	 args['rows'].fillna('')
-		
-		
-	def run(self):
-		_info = {"values":self.rows} if 'couch' in self.PROVIDER else self.rows	
-		ltypes = self.rows.dtypes.values
-		columns = self.rows.dtypes.index.tolist()
-		# if not self.writer.has() :
-
-			
-			# self.writer.make(fields=columns)
-			# self.log(module='write',action='make-table',input={"name":self.writer.table})
-		for name in columns :
-			if _info[name].dtype in ['int32','int64','int','float','float32','float64'] :
-				value = 0
-			else:
-				value = ''
-			_info[name] = _info[name].fillna(value)
-		writer = transport.factory.instance(**self.store)
-		writer.write(_info)
-		writer.close()
-
-		
-class ETL (Process):
-	def __init__(self,**_args):
-		super().__init__()
-		
-		self.name 	= _args['id']
-		if 'provider' not in _args['source'] :
-			#@deprecate
-			self.reader = transport.factory.instance(**_args['source'])
-		else:
-			#
-			# This is the new interface
-			_args['source']['context'] = 'read'	
-			
-			self.reader = transport.instance(**_args['source'])
-		#
-		# do we have an sql query provided or not ....
-		# self.sql = _args['source']['sql'] if 'sql' in _args['source'] else None
-		self.cmd = _args['source']['cmd'] if 'cmd' in _args['source'] else None
-		self._oargs = _args['target'] #transport.factory.instance(**_args['target'])
-		self.JOB_COUNT =  _args['jobs']
-		self.jobs = []
-		# self.logger = transport.factory.instance(**_args['logger'])
-	def log(self,**_args) :
-		_args['name']  = self.name
-		print (_args)
-	def run(self):
-		if self.cmd :
-			idf = self.reader.read(**self.cmd)
-		else:
-			idf = self.reader.read() 
-		idf = pd.DataFrame(idf)		
-		# idf = idf.replace({np.nan: None}, inplace = True)
-
-		idf.columns = [str(name).replace("b'",'').replace("'","").strip() for name in idf.columns.tolist()]
-		self.log(rows=idf.shape[0],cols=idf.shape[1],jobs=self.JOB_COUNT)
-
-		#
-		# writing the data to a designated data source 
-		#
-		try:
-			
-			
-			self.log(module='write',action='partitioning')
-			rows = np.array_split(np.arange(0,idf.shape[0]),self.JOB_COUNT)
-			
-			#
-			# @TODO: locks
-			for i in np.arange(self.JOB_COUNT) :
-				_id = 'segment # '.join([str(i),' ',self.name])
-				indexes = rows[i]
-				segment = idf.loc[indexes,:].copy() #.to_dict(orient='records')
-				if segment.shape[0] == 0 :
-					continue
-				proc = Post(target = self._oargs,rows = segment,name=_id)
-				self.jobs.append(proc)
-				proc.start()
-
-				self.log(module='write',action='working',segment=_id)
-			# while poc :
-			# 	proc = [job for job in proc if job.is_alive()]
-			# 	time.sleep(1)
-		except Exception as e:
-			print (e)
-		
-	def is_done(self):
-		self.jobs = [proc for proc in self.jobs if proc.is_alive()]
-		return len(self.jobs) == 0
-def apply(_args) :
-	"""
-	This function will apply a set of commands against a data-store. The expected structure is as follows :
-	{"store":...,"apply":[]}	
-	"""
-	handler = transport.factory.instance(**_args['store'])
-	for cmd in _args['apply'] :
-		handler.apply(cmd)
-	handler.close()
 if __name__ == '__main__' :
-	_info = json.loads(open (SYS_ARGS['config']).read())
-	index = int(SYS_ARGS['index']) if 'index' in SYS_ARGS else None
-	procs = []
-	for _config in _info :
-		if 'source' in SYS_ARGS :
-			_config['source'] = {"type":"disk.DiskReader","args":{"path":SYS_ARGS['source'],"delimiter":","}}
-
-		_config['jobs']  = 3 if 'jobs' not in SYS_ARGS else int(SYS_ARGS['jobs'])
-		etl = ETL (**_config)
-		if index is None:	
-			
-			etl.start()
-			procs.append(etl)
-		
-		elif _info.index(_config) == index :
-			
-			# print (_config)
-			procs = [etl]
-			etl.start()
-			break
 	#
-	#
-	N = len(procs)
-	while procs :
-		procs = [thread for thread in procs if not thread.is_done()]
-		if len(procs) < N :
-			print (["Finished ",(N-len(procs)), " remaining ", len(procs)])
-			N = len(procs)
-		time.sleep(1)
-	print ("We're done !!")
+	# Load information from the file ...
+	if 'help' in SYS_ARGS :
+		print (__doc__)
+	else:
+		try:
+			_info = json.loads(open(SYS_ARGS['config']).read())
+			if 'index' in SYS_ARGS :
+				_index = int(SYS_ARGS['index'])
+				_info = [_item for _item in _info if _info.index(_item) == _index]
+				pass
+			
+			procs = 1 if 'procs' not in SYS_ARGS else int(SYS_ARGS['procs'])
+			jobs = transport.factory.instance(provider='etl',info=_info,procs=procs)
+			while jobs :
+				x = len(jobs)
+				jobs = [_job for _job in jobs if _job.is_alive()]
+				if x != len(jobs) :
+					print ([len(jobs),'... jobs running'])
+				time.sleep(1)
+		except Exception as e:
+			
+			print (e)
+			
+	

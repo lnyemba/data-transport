@@ -28,22 +28,24 @@ import importlib
 import sys 
 import sqlalchemy
 if sys.version_info[0] > 2 : 
-    from transport.common import Reader, Writer #, factory
-    from transport import disk
+	from transport.common import Reader, Writer,Console #, factory
+	from transport import disk
 
-    from transport import s3 as s3
-    from transport import rabbitmq as queue
-    from transport import couch as couch
-    from transport import mongo as mongo
-    from transport import sql as sql
+	from transport import s3 as s3
+	from transport import rabbitmq as queue
+	from transport import couch as couch
+	from transport import mongo as mongo
+	from transport import sql as sql
+	from transport import etl as etl
 else:
-    from common import Reader, Writer #, factory
-    import disk
-    import queue
-    import couch
-    import mongo
-    import s3
-    import sql
+	from common import Reader, Writer,Console #, factory
+	import disk
+	import queue
+	import couch
+	import mongo
+	import s3
+	import sql
+	import etl
 import psycopg2 as pg
 import mysql.connector as my
 from google.cloud import bigquery as bq
@@ -51,9 +53,12 @@ import nzpy as nz   #--- netezza drivers
 import os
 
 
+
 class factory :
 	TYPE = {"sql":{"providers":["postgresql","mysql","neteeza","bigquery","mariadb","redshift"]}}
 	PROVIDERS = {
+		"etl":{"class":{"read":etl.instance}},
+		"console":{"class":{"write":Console,"read":Console}},
 		"file":{"class":{"read":disk.DiskReader,"write":disk.DiskWriter}},
 		"sqlite":{"class":{"read":disk.SQLiteReader,"write":disk.SQLiteWriter}},
         "postgresql":{"port":5432,"host":"localhost","database":os.environ['USER'],"driver":pg,"default":{"type":"VARCHAR"}},
@@ -140,8 +145,9 @@ def instance(**_args):
 		#
 		# Let us try to establish an sqlalchemy wrapper
 		try:
+			
 			host = ''
-			if provider not in ['bigquery','mongodb','couchdb','sqlite'] :
+			if provider not in ['bigquery','mongodb','couchdb','sqlite','console','etl','file'] :
 				#
 				# In these cases we are assuming RDBMS and thus would exclude NoSQL and BigQuery
 				username = args['username'] if 'username' in args else ''
@@ -159,7 +165,7 @@ def instance(**_args):
 				account = ''
 				host = ''
 				database = args['path'] if 'path' in args else args['database']
-			if provider not in ['mongodb','couchdb','bigquery'] :
+			if provider not in ['mongodb','couchdb','bigquery','console','etl','file'] :
 				uri = ''.join([provider,"://",account,host,'/',database])
 				
 				e = sqlalchemy.create_engine (uri,future=True)
@@ -170,6 +176,6 @@ def instance(**_args):
 		except Exception as e:
 			print (e)
 
-		return pointer(**args)
+		return pointer(**args) 
 
 	return None

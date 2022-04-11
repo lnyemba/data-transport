@@ -21,6 +21,7 @@ __author__ = 'The Phi Technology'
 import numpy as np
 import json
 import importlib 
+from multiprocessing import RLock
 # import couch
 # import mongo
 class IO:
@@ -89,6 +90,29 @@ class ReadWriter(Reader,Writer) :
 	This class implements the read/write functions aggregated
 	"""
 	pass
+class Console(Writer):
+	lock = RLock()
+	def __init__(self,**_args):
+		self.lock = _args['lock'] if 'lock' in _args else False
+		self.info = self.write
+		self.debug = self.write
+		self.log = self.write
+		pass
+	def write (self,info,**_args):
+		if self.lock :
+			Console.lock.acquire()
+		try:
+			if type(info) == list:
+				for row in info :
+					print (row)
+			else:
+				print (info)
+		except Exception as e :
+			print (e)
+		finally:
+			if self.lock :
+				Console.lock.release()
+	
 # class factory :
 # 	@staticmethod
 # 	def instance(**args):

@@ -21,14 +21,17 @@ class DiskReader(Reader) :
 		"""
 
 		Reader.__init__(self)
-		self.path 		= params['path'] ;
+		self.path 		= params['path'] if 'path' in params else None
 		self.delimiter	= params['delimiter'] if 'delimiter' in params else ','
+		
 	def isready(self):
 		return os.path.exists(self.path) 
+	def meta(self,**_args):
+		return []
 	def read(self,**args):
 		_path = self.path if 'path' not in args else args['path']
 		_delimiter = self.delimiter if 'delimiter' not in args else args['delimiter']
-		return pd.read_csv(self.path,delimiter=self.delimiter)
+		return pd.read_csv(_path,delimiter=self.delimiter)
 	def stream(self,**args):
 		"""
 		This function reads the rows from a designated location on disk
@@ -84,15 +87,16 @@ class DiskWriter(Writer):
 		self.cache['meta']['cols'] += len(row) if isinstance(row,list) else len(row.keys())
 		self.cache['meta']['rows'] += 1
 		return (self.delimiter.join(row) if self.delimiter else json.dumps(row))+"\n"
-	def write(self,info):
+	def write(self,info,**_args):
 		"""
 			This function writes a record to a designated file
 			@param	label	<passed|broken|fixed|stats>
 			@param	row	row to be written
 		"""
 		try:
+			_mode = 'a' if 'overwrite' not in _args else 'w'
 			DiskWriter.THREAD_LOCK.acquire()
-			f = open(self.path,'a')
+			f = open(self.path,_mode)
 			if self.delimiter :
 				if type(info) == list :
 					for row in info :
