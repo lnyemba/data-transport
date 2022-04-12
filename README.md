@@ -1,6 +1,6 @@
 # Introduction
 
-This project implements an abstraction of objects that can have access to a variety of data stores, implementing read/write with a simple and expressive interface. This abstraction works with **NoSQL** and **SQL** data stores and leverages **pandas**
+This project implements an abstraction of objects that can have access to a variety of data stores, implementing read/write with a simple and expressive interface. This abstraction works with **NoSQL** and **SQL** data stores and leverages **pandas**.
 
 The supported data store providers :
 
@@ -44,12 +44,32 @@ The data-transport can be used within code as a library
 * Read/Write against [mongodb](https://github.com/lnyemba/data-transport/wiki/mongodb)
 * Read/Write against tranditional [RDBMS](https://github.com/lnyemba/data-transport/wiki/rdbms)
 * Read/Write against [bigquery](https://github.com/lnyemba/data-transport/wiki/bigquery)
+* ETL CLI/Code [ETL](https://github.com/lnyemba/data-transport/wiki/etl)
 
 The read/write functions make data-transport a great candidate for **data-science**; **data-engineering** or all things pertaining to data. It enables operations across multiple data-stores(relational or not)
 
-## Command Line Interface (CLI)
+## ETL
+
+**Embedded in Code**
+
+It is possible to perform ETL within custom code as follows :
+
+```
+    import transport
+    import time
+    
+    _info = [{source:{'provider':'sqlite','path':'/home/me/foo.csv','table':'me'},target:{provider:'bigquery',private_key='/home/me/key.json','table':'me','dataset':'mydataset'}}, ...]    
+    procs = transport.factory.instance(provider='etl',info=_info)
+    #
+    #
+    while procs:
+        procs = [pthread for pthread in procs if pthread.is_alive()]
+        time.sleep(1)
+```
+
+**Command Line Interface (CLI):**
 ---
-The CLI program is called **transport** and it requires a configuratio file
+The CLI program is called **transport** and it requires a configuration file. The program is intended to move data from one location to another. Supported data stores are in the above paragraphs.
 
 ```
 [
