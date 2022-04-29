@@ -137,7 +137,7 @@ class MongoWriter(Mongo,Writer):
         
             
         pass
-    def write(self,info):
+    def write(self,info,**_args):
         """
         This function will write to a given collection i.e add a record to a collection (no updates)
         @param info new record in the collection to be added
@@ -148,13 +148,13 @@ class MongoWriter(Mongo,Writer):
         #     self.db[self.uid].insert_many(info)
         # else:
         try:
-
+            _uid = self.uid if 'doc' not in _args else _args['doc']
             if self._lock :
                 Mongo.lock.acquire()
             if type(info) == list or type(info) == pd.DataFrame :
-                self.db[self.uid].insert_many(info if type(info) == list else info.to_dict(orient='records'))
+                self.db[_uid].insert_many(info if type(info) == list else info.to_dict(orient='records'))
             else:
-                self.db[self.uid].insert_one(info)
+                self.db[_uid].insert_one(info)
         finally:
             if self._lock :
                 Mongo.lock.release()
