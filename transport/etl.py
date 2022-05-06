@@ -96,7 +96,7 @@ class ETL (Process):
     def __init__(self,**_args):
         super().__init__()
 
-        self.name 	= _args['id']
+        self.name 	= _args['id'] if 'id' in _args else 'UNREGISTERED'
         if 'provider' not in _args['source'] :
             #@deprecate
             self.reader = transport.factory.instance(**_args['source'])
@@ -126,7 +126,7 @@ class ETL (Process):
         # idf = idf.replace({np.nan: None}, inplace = True)
 
         idf.columns = [str(name).replace("b'",'').replace("'","").strip() for name in idf.columns.tolist()]
-        ETL.logger.info(rows=idf.shape[0],cols=idf.shape[1],jobs=self.JOB_COUNT)
+        # ETL.logger.info(rows=idf.shape[0],cols=idf.shape[1],jobs=self.JOB_COUNT)
 
         #
         # writing the data to a designated data source 
@@ -134,7 +134,7 @@ class ETL (Process):
         try:
             
             
-            ETL.logger.info(module='write',action='partitioning')
+            # ETL.logger.info(module='write',action='partitioning')
             rows = np.array_split(np.arange(0,idf.shape[0]),self.JOB_COUNT)
             
             #
@@ -149,7 +149,7 @@ class ETL (Process):
                 self.jobs.append(proc)
                 proc.start()
 
-                ETL.logger.info(module='write',action='working',segment=str(id),table=self.name,rows=segment.shape[0])
+                # ETL.logger.info(module='write',action='working',segment=str(id),table=self.name,rows=segment.shape[0])
             # while poc :
             # 	proc = [job for job in proc if job.is_alive()]
             # 	time.sleep(1)
