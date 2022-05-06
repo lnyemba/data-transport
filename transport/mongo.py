@@ -33,20 +33,24 @@ class Mongo :
             :username   username for authentication
             :password   password for current user
         """
-        host = args['host'] if 'host' in args else 'localhost:27017'
+        port = str(args['port']) if 'port' in args else '27017'
+        host = args['host'] if 'host' in args else 'localhost'
+        host = ":".join([host,port]) #-- Formatting host information here
+        self.uid    = args['doc'] if 'doc' in args else None  #-- document identifier
+        self.dbname = args['dbname'] if 'dbname' in args else args['db']
         
+        self._lock = False if 'lock' not in args else args['lock']
+
         if 'user' in args and 'password' in args:        
             self.client = MongoClient(host,
                       username=args['username'] ,
                       password=args['password'] ,
+                      authSource=(args['authSource'] if 'authSource' in args else self.dbname),
                       authMechanism='SCRAM-SHA-256')
         else:
             self.client = MongoClient(host,maxPoolSize=10000)                    
         
-        self.uid    = args['doc']  #-- document identifier
-        self.dbname = args['dbname'] if 'dbname' in args else args['db']
         self.db = self.client[self.dbname]
-        self._lock = False if 'lock' not in args else args['lock']
         
     def isready(self):
         p = self.dbname in self.client.list_database_names() 
