@@ -54,41 +54,46 @@ if len(sys.argv) > 1:
         i += 2
 
 class Post(Process):
-	def __init__(self,**args):
-		super().__init__()
+    def __init__(self,**args):
+        super().__init__()
+        
+        if 'provider' not in args['target'] :
+            self.PROVIDER = args['target']['type']
+            self.writer = 	transport.factory.instance(**args['target'])
+        else:
+            self.PROVIDER = args['target']['provider']
+            args['target']['context'] = 'write'
+            self.store = args['target']
+            self.store['lock'] = True
+            # self.writer = transport.instance(**args['target'])
+        #
+        # If the table doesn't exists maybe create it ?
+        #
+        self.rows 	=	 args['rows'].fillna('')
 		
-		if 'provider' not in args['target'] :
-			self.PROVIDER = args['target']['type']
-			self.writer = 	transport.factory.instance(**args['target'])
-		else:
-			self.PROVIDER = args['target']['provider']
-			args['target']['context'] = 'write'
-			self.store = args['target']
-			# self.writer = transport.instance(**args['target'])
-		#
-		# If the table doesn't exists maybe create it ?
-		#
-		self.rows 	=	 args['rows'].fillna('')
+    def log(self,**_args) :
+        if ETL.logger :
+            ETL.logger.info(**_args)
 		
-		
-	def run(self):
-		_info = {"values":self.rows} if 'couch' in self.PROVIDER else self.rows	
-		ltypes = self.rows.dtypes.values
-		columns = self.rows.dtypes.index.tolist()
-		# if not self.writer.has() :
+    def run(self):
+        _info = {"values":self.rows} if 'couch' in self.PROVIDER else self.rows	
+        ltypes = self.rows.dtypes.values
+        columns = self.rows.dtypes.index.tolist()
+        # if not self.writer.has() :
 
-			
-			# self.writer.make(fields=columns)
-			# ETL.logger.info(module='write',action='make-table',input={"name":self.writer.table})
-		for name in columns :
-			if _info[name].dtype in ['int32','int64','int','float','float32','float64'] :
-				value = 0
-			else:
-				value = ''
-			_info[name] = _info[name].fillna(value)
-		writer = transport.factory.instance(**self.store)
-		writer.write(_info)
-		writer.close()
+            
+            # self.writer.make(fields=columns)
+            # ETL.logger.info(module='write',action='make-table',input={"name":self.writer.table})
+        self.log(module='write',action='make-table',input={"schema":columns})
+        for name in columns :
+            if _info[name].dtype in ['int32','int64','int','float','float32','float64'] :
+                value = 0
+            else:
+                value = ''
+            _info[name] = _info[name].fillna(value)
+        writer = transport.factory.instance(**self.store)
+        writer.write(_info)
+        writer.close()
 
 		
 class ETL (Process):
@@ -115,8 +120,9 @@ class ETL (Process):
         self.jobs = []
 		# self.logger = transport.factory.instance(**_args['logger'])
     def log(self,**_args) :
-        _args['name']  = self.name
-        print (_args)
+        if ETL.logger :
+            ETL.logger.info(**_args)
+        
     def run(self):
         if self.cmd :
             idf = self.reader.read(**self.cmd)
@@ -126,7 +132,7 @@ class ETL (Process):
         # idf = idf.replace({np.nan: None}, inplace = True)
 
         idf.columns = [str(name).replace("b'",'').replace("'","").strip() for name in idf.columns.tolist()]
-        # ETL.logger.info(rows=idf.shape[0],cols=idf.shape[1],jobs=self.JOB_COUNT)
+        self.log(rows=idf.shape[0],cols=idf.shape[1],jobs=self.JOB_COUNT)
 
         #
         # writing the data to a designated data source 
@@ -134,7 +140,7 @@ class ETL (Process):
         try:
             
             
-            # ETL.logger.info(module='write',action='partitioning')
+            self.log(module='write',action='partitioning',jobs=self.JOB_COUNT)
             rows = np.array_split(np.arange(0,idf.shape[0]),self.JOB_COUNT)
             
             #
@@ -148,10 +154,10 @@ class ETL (Process):
                 proc = Post(target = self._oargs,rows = segment,name=str(i))
                 self.jobs.append(proc)
                 proc.start()
-
-                # ETL.logger.info(module='write',action='working',segment=str(id),table=self.name,rows=segment.shape[0])
-            # while poc :
-            # 	proc = [job for job in proc if job.is_alive()]
+                
+                self.log(module='write',action='working',segment=str(self.name),table=self.name,rows=segment.shape[0])
+            # while self.jobs :
+            # 	jobs = [job for job in proc if job.is_alive()]
             # 	time.sleep(1)
         except Exception as e:
             print (e)
@@ -166,9 +172,9 @@ def instance(**_args):
     """
     logger = _args['logger'] if 'logger' in _args else None
     _info = _args['info']
-    if logger :
+    if logger and type(logger) != str:
         ETL.logger = logger 
-    else:
+    elif logger == 'console':
         ETL.logger = transport.factory.instance(provider='console',lock=True)
     if type(_info) in [list,dict] :
         _config = _info if type(_info) != dict else [_info]
@@ -195,8 +201,6 @@ if __name__ == '__main__' :
             _config['source'] = {"type":"disk.DiskReader","args":{"path":SYS_ARGS['source'],"delimiter":","}}
 
         _config['jobs']  = 3 if 'jobs' not in SYS_ARGS else int(SYS_ARGS['jobs'])
-        print (_config)
-        print ()
         etl = ETL (**_config)
         if index is None:	
             

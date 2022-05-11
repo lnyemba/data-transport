@@ -312,9 +312,11 @@ class BigQuery:
         :param sql      sql query to be pulled,
         """
         table = _args['table'] 
-        
-        ref     = self.client.dataset(self.dataset).table(table)
-        return self.client.get_table(ref).schema
+        try:
+            ref     = self.client.dataset(self.dataset).table(table)
+            return self.client.get_table(ref).schema
+        except Exception as e:
+            return []
     def has(self,**_args):
         found = False
         try:

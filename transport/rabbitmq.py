@@ -222,22 +222,21 @@ class QueueListener(MessageQueue):
 	def __init__(self,**args):
 		MessageQueue.__init__(self,**args)
 		self.listen = self.read
-	# def init(self,qid):
-	# 	properties = pika.ConnectionParameters(host=self.host)
-	# 	self.connection = pika.BlockingConnection(properties)
-	# 	self.channel	= self.connection.channel()
-	# 	self.channel.exchange_declare(exchange=self.exchange,type='direct',durable=True )
-
-	# 	self.info = self.channel.queue_declare(passive=True,exclusive=True,queue=qid)
-		
-	# 	self.channel.queue_bind(exchange=self.exchange,queue=self.info.method.queue,routing_key=qid)
-		#self.callback = callback
+		self.apply = args['apply'] if 'apply' in args else print
 	
 	def finalize(self,channel,ExceptionReason):
 		pass
-	 
+	
 	def callback(self,channel,method,header,stream) :
-		raise Exception("....")
+		_info= {}
+		# if re.match("^\{|\[",stream) is not None:
+		
+		if stream.startswith(b"[") or stream.startswith(b"{"):
+			_info = json.loads(stream)
+		else:
+			
+			_info = stream
+		self.apply(_info)
 	def read(self):
     	
 		self.init(self.queue)

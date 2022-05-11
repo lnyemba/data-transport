@@ -98,15 +98,15 @@ class Console(Writer):
 		self.debug = self.write
 		self.log = self.write
 		pass
-	def write (self,info,**_args):
+	def write (self,**_args):
 		if self.lock :
 			Console.lock.acquire()
 		try:
-			if type(info) == list:
-				for row in info :
+			if type(_args) == list:
+				for row in _args :
 					print (row)
 			else:
-				print (info)
+				print (_args)
 		except Exception as e :
 			print (e)
 		finally:

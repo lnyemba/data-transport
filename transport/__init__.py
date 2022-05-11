@@ -68,11 +68,13 @@ class factory :
         "mariadb":{"port":3306,"host":"localhost","default":{"type":"VARCHAR(256)"},"driver":my},
 		"mongo":{"port":27017,"host":"localhost","class":{"read":mongo.MongoReader,"write":mongo.MongoWriter}},		
 		"couch":{"port":5984,"host":"localhost","class":{"read":couch.CouchReader,"write":couch.CouchWriter}},		
-        "netezza":{"port":5480,"driver":nz,"default":{"type":"VARCHAR(256)"}}}
+        "netezza":{"port":5480,"driver":nz,"default":{"type":"VARCHAR(256)"}},
+		"rabbitmq":{"port":5672,"host":"localhost","class":{"read":queue.QueueReader,"write":queue.QueueWriter,"listen":queue.QueueListener},"default":{"type":"application/json"}}}
 	#
 	# creating synonyms
 	PROVIDERS['mongodb'] = PROVIDERS['mongo']
 	PROVIDERS['couchdb'] = PROVIDERS['couch']
+	PROVIDERS['bq'] 	 = PROVIDERS['bigquery']
 	PROVIDERS['sqlite3'] = PROVIDERS['sqlite']
 	
 	@staticmethod
@@ -124,7 +126,7 @@ def instance(**_args):
 	
 	provider = _args['provider']
 	context = _args['context']if 'context' in _args else None
-	_id = context if context in ['read','write'] else 'read'
+	_id = context if context in list(factory.PROVIDERS[provider]['class'].keys()) else 'read'
 	if _id :
 		args = {'provider':_id}
 		for key in factory.PROVIDERS[provider] :
@@ -147,7 +149,7 @@ def instance(**_args):
 		try:
 			
 			host = ''
-			if provider not in ['bigquery','mongodb','couchdb','sqlite','console','etl','file'] :
+			if provider not in ['bigquery','mongodb','couchdb','sqlite','console','etl','file','rabbitmq'] :
 				#
 				# In these cases we are assuming RDBMS and thus would exclude NoSQL and BigQuery
 				username = args['username'] if 'username' in args else ''
@@ -165,7 +167,7 @@ def instance(**_args):
 				account = ''
 				host = ''
 				database = args['path'] if 'path' in args else args['database']
-			if provider not in ['mongodb','couchdb','bigquery','console','etl','file'] :
+			if provider not in ['mongodb','couchdb','bigquery','console','etl','file','rabbitmq'] :
 				uri = ''.join([provider,"://",account,host,'/',database])
 				
 				e = sqlalchemy.create_engine (uri,future=True)
