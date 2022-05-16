@@ -59,7 +59,7 @@ class Mongo :
                       username=username,
                       password=password ,
                       authSource=authSource,
-                      authMechanism='SCRAM-SHA-256')
+                      authMechanism=authMechanism)
         else:
             self.client = MongoClient(host,maxPoolSize=10000)                    
         
