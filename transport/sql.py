@@ -64,6 +64,17 @@ class SQLRW :
             key = 'username' if 'username' in _args else 'user'
             _info['user'] = _args[key]
             _info['password'] = _args['password'] if 'password' in _args else ''
+        if 'auth_file' in _args :
+            _auth = json.loads( open(_args['auth_file']).read() )
+            key = 'username' if 'username' in _auth else 'user'
+            _info['user'] = _auth[key]
+            _info['password'] = _auth['password'] if 'password' in _auth else ''
+
+            _info['host'] = _auth['host'] if 'host' in _auth else _info['host']
+            _info['port'] = _auth['port'] if 'port' in _auth else _info['port']
+            if 'database' in _auth:
+                _info['dbname'] = _auth['database']
+            self.table = _auth['table'] if 'table' in _auth else self.table
         #
         # We need to load the drivers here to see what we are dealing with ...
         

@@ -5,11 +5,11 @@ from common import Reader, Writer
 import json
 
 class HttpRequestReader(Reader):
-    """
-    This class is designed to read data from an Http request file handler provided to us by flask
-    The file will be heald in memory and processed accordingly
-    NOTE: This is inefficient and can crash a micro-instance (becareful)
-    """
+	"""
+	This class is designed to read data from an Http request file handler provided to us by flask
+	The file will be heald in memory and processed accordingly
+	NOTE: This is inefficient and can crash a micro-instance (becareful)
+	"""
 
 	def __init__(self,**params):
 		self.file_length = 0
@@ -22,8 +22,8 @@ class HttpRequestReader(Reader):
 			#print 'size of file ',self.file_length
 			self.content = params['file'].readlines()
 			self.file_length = len(self.content)
-		except Exception, e:
-			print "Error ... ",e
+		except Exception as e:
+			print ("Error ... ",e)
 			pass
 		
 	def isready(self):
@@ -37,13 +37,13 @@ class HttpRequestReader(Reader):
 			yield row
 		
 class HttpSessionWriter(Writer):
-    """
-        This class is designed to write data to a session/cookie
-    """
+	"""
+		This class is designed to write data to a session/cookie
+	"""
 	def __init__(self,**params):
-        """
-            @param key	required session key
-        """
+		"""
+			@param key	required session key
+		"""
 		self.session = params['queue']
 		self.session['sql'] = []
 		self.session['csv'] = []

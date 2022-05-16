@@ -57,25 +57,27 @@ import os
 class factory :
 	TYPE = {"sql":{"providers":["postgresql","mysql","neteeza","bigquery","mariadb","redshift"]}}
 	PROVIDERS = {
-		"etl":{"class":{"read":etl.instance}},
+		"etl":{"class":{"read":etl.instance,"write":etl.instance}},
 		"console":{"class":{"write":Console,"read":Console}},
 		"file":{"class":{"read":disk.DiskReader,"write":disk.DiskWriter}},
 		"sqlite":{"class":{"read":disk.SQLiteReader,"write":disk.SQLiteWriter}},
-        "postgresql":{"port":5432,"host":"localhost","database":os.environ['USER'],"driver":pg,"default":{"type":"VARCHAR"}},
-        "redshift":{"port":5432,"host":"localhost","database":os.environ['USER'],"driver":pg,"default":{"type":"VARCHAR"}},
+        "postgresql":{"port":5432,"host":"localhost","database":os.environ['USER'],"driver":pg,"default":{"type":"VARCHAR"},"class":{"read":sql.SQLReader,"write":sql.SQLWriter}},
+        "redshift":{"port":5432,"host":"localhost","database":os.environ['USER'],"driver":pg,"default":{"type":"VARCHAR"},"class":{"read":sql.SQLReader,"write":sql.SQLWriter}},
         "bigquery":{"class":{"read":sql.BQReader,"write":sql.BQWriter}},
-        "mysql":{"port":3306,"host":"localhost","default":{"type":"VARCHAR(256)"},"driver":my},
-        "mariadb":{"port":3306,"host":"localhost","default":{"type":"VARCHAR(256)"},"driver":my},
+        "mysql":{"port":3306,"host":"localhost","default":{"type":"VARCHAR(256)"},"driver":my,"class":{"read":sql.SQLReader,"write":sql.SQLWriter}},
+        "mariadb":{"port":3306,"host":"localhost","default":{"type":"VARCHAR(256)"},"driver":my,"class":{"read":sql.SQLReader,"write":sql.SQLWriter}},
 		"mongo":{"port":27017,"host":"localhost","class":{"read":mongo.MongoReader,"write":mongo.MongoWriter}},		
 		"couch":{"port":5984,"host":"localhost","class":{"read":couch.CouchReader,"write":couch.CouchWriter}},		
-        "netezza":{"port":5480,"driver":nz,"default":{"type":"VARCHAR(256)"}},
-		"rabbitmq":{"port":5672,"host":"localhost","class":{"read":queue.QueueReader,"write":queue.QueueWriter,"listen":queue.QueueListener},"default":{"type":"application/json"}}}
+        "netezza":{"port":5480,"driver":nz,"default":{"type":"VARCHAR(256)"},"class":{"read":sql.SQLReader,"write":sql.SQLWriter}},
+		"rabbitmq":{"port":5672,"host":"localhost","class":{"read":queue.QueueReader,"write":queue.QueueWriter,"listen":queue.QueueListener,"listener":queue.QueueListener},"default":{"type":"application/json"}}}
 	#
 	# creating synonyms
 	PROVIDERS['mongodb'] = PROVIDERS['mongo']
 	PROVIDERS['couchdb'] = PROVIDERS['couch']
 	PROVIDERS['bq'] 	 = PROVIDERS['bigquery']
 	PROVIDERS['sqlite3'] = PROVIDERS['sqlite']
+	PROVIDERS['rabbit'] = PROVIDERS['rabbitmq']
+	PROVIDERS['rabbitmq-server'] = PROVIDERS['rabbitmq']
 	
 	@staticmethod
 	def instance(**_args):

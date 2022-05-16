@@ -113,32 +113,3 @@ class Console(Writer):
 			if self.lock :
 				Console.lock.release()
 	
-# class factory :
-# 	@staticmethod
-# 	def instance(**args):
-# 		"""
-# 		This class will create an instance of a transport when providing 
-# 		:type	name of the type we are trying to create
-# 		:args	The arguments needed to create the instance
-# 		"""
-# 		source = args['type']		
-# 		params = args['args']
-# 		anObject = None
-		
-# 		if source in ['HttpRequestReader','HttpSessionWriter']:
-# 			#
-# 			# @TODO: Make sure objects are serializable, be smart about them !!
-# 			#
-# 			aClassName = ''.join([source,'(**params)'])
-
-
-# 		else:
-			
-# 			stream = json.dumps(params)
-# 			aClassName = ''.join([source,'(**',stream,')'])
-# 		try:
-# 			anObject = eval( aClassName)
-# 			#setattr(anObject,'name',source)
-# 		except Exception,e:
-# 			print ['Error ',e]
-# 		return anObject

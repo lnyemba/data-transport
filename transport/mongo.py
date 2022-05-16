@@ -41,11 +41,21 @@ class Mongo :
         
         self._lock = False if 'lock' not in args else args['lock']
 
-        if 'user' in args and 'password' in args:        
+        username = password = None
+        if 'username' in args and 'password' in args: 
+            username = args['username']       
+            password=args['password']
+        if 'auth_file' in args :
+            _info = json.loads((open(args['auth_file'])).read())
+            username = _info['username']
+            password = _info['password']
+        authSource=(args['authSource'] if 'authSource' in args else self.dbname)
+        
+        if username and password :
             self.client = MongoClient(host,
-                      username=args['username'] ,
-                      password=args['password'] ,
-                      authSource=(args['authSource'] if 'authSource' in args else self.dbname),
+                      username=username,
+                      password=password ,
+                      authSource=authSource,
                       authMechanism='SCRAM-SHA-256')
         else:
             self.client = MongoClient(host,maxPoolSize=10000)                    
