@@ -39,6 +39,7 @@ class Mongo :
         self.uid    = args['doc'] if 'doc' in args else None  #-- document identifier
         self.dbname = args['dbname'] if 'dbname' in args else args['db']
         authMechanism= 'SCRAM-SHA-256' if 'mechanism' not in args else args['mechanism']
+        authSource=(args['authSource'] if 'authSource' in args else self.dbname)
         self._lock = False if 'lock' not in args else args['lock']
 
         username = password = None
@@ -51,8 +52,9 @@ class Mongo :
             password = _info['password']
             if 'mechanism' in _info:
                 authMechanism = _info['mechanism']
+            if 'authSource' in _info:
+                authSource = _info['authSource']
         
-        authSource=(args['authSource'] if 'authSource' in args else self.dbname)
         
         if username and password :
             self.client = MongoClient(host,
