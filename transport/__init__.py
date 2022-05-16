@@ -151,7 +151,7 @@ def instance(**_args):
 		try:
 			
 			host = ''
-			if provider not in ['bigquery','mongodb','couchdb','sqlite','console','etl','file','rabbitmq'] :
+			if provider not in ['bigquery','mongodb','mongo','couchdb','sqlite','console','etl','file','rabbitmq'] :
 				#
 				# In these cases we are assuming RDBMS and thus would exclude NoSQL and BigQuery
 				username = args['username'] if 'username' in args else ''
@@ -169,7 +169,7 @@ def instance(**_args):
 				account = ''
 				host = ''
 				database = args['path'] if 'path' in args else args['database']
-			if provider not in ['mongodb','couchdb','bigquery','console','etl','file','rabbitmq'] :
+			if provider not in ['mongodb','mongo','couchdb','bigquery','console','etl','file','rabbitmq'] :
 				uri = ''.join([provider,"://",account,host,'/',database])
 				
 				e = sqlalchemy.create_engine (uri,future=True)

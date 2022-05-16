@@ -38,7 +38,7 @@ class Mongo :
         host = ":".join([host,port]) #-- Formatting host information here
         self.uid    = args['doc'] if 'doc' in args else None  #-- document identifier
         self.dbname = args['dbname'] if 'dbname' in args else args['db']
-        
+        authMechanism= 'SCRAM-SHA-256' if 'mechanism' not in args else args['mechanism']
         self._lock = False if 'lock' not in args else args['lock']
 
         username = password = None
@@ -49,6 +49,9 @@ class Mongo :
             _info = json.loads((open(args['auth_file'])).read())
             username = _info['username']
             password = _info['password']
+            if 'mechanism' in _info:
+                authMechanism = _info['mechanism']
+        
         authSource=(args['authSource'] if 'authSource' in args else self.dbname)
         
         if username and password :
