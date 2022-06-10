@@ -59,7 +59,7 @@ class SQLRW :
         #     _info['host'] = 'localhost' if 'host' not in _args else _args['host']
         #     # _info['port'] = SQLWriter.PROVIDERS[_args['provider']] if 'port' not in _args else _args['port']
         #     _info['port'] = SQLWriter.REFERENCE[_provider]['port'] if 'port' not in _args else _args['port']
-        
+        self.lock = False if 'lock' not in _args else _args['lock']
         if 'username' in _args or 'user' in _args:
             key = 'username' if 'username' in _args else 'user'
             _info['user'] = _args[key]
@@ -272,7 +272,8 @@ class SQLWriter(SQLRW,Writer):
             if _info.shape[0] == 0 :
                 
                 return
-            SQLRW.lock.acquire()
+            if self.lock :
+                SQLRW.lock.acquire()
             
             if self._engine is not None:
                 # pd.to_sql(_info,self._engine)
@@ -299,7 +300,8 @@ class SQLWriter(SQLRW,Writer):
             
             if self._engine is None :
                 self.conn.commit()   
-            SQLRW.lock.release()         
+            if self.lock :
+                SQLRW.lock.release()         
             # cursor.close()
             pass
     def close(self):
