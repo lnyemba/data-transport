@@ -258,7 +258,8 @@ class SQLWriter(SQLRW,Writer):
         #     info = [info]  if type(info) == dict else info.values.tolist()       
         
         try:
-            table = self._tablename(self.table)
+            table = _args['table'] if 'table' in _args else self.table
+            table = self._tablename(table)
             _sql = "INSERT INTO :table (:fields) VALUES (:values)".replace(":table",table) #.replace(":table",self.table).replace(":fields",_fields)
            
             if type(info) == list :
