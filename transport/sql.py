@@ -101,9 +101,10 @@ class SQLRW :
             if self._engine :
                 table = _args['table'] if 'table' in _args else self.table
                 _m = sqlalchemy.MetaData(bind=self._engine)
+                _m.reflect()
                 schema = [{"name":_attr.name,"type":str(_attr.type)} for _attr in _m.tables[table].columns]
         except Exception as e:
-            e
+            pass
         return schema
     def _tablename(self,name) :
         
