@@ -96,7 +96,15 @@ class SQLRW :
         self.conn = _handler.connect(**_info)
         self._engine = _args['sqlalchemy']  if 'sqlalchemy' in _args else None
     def meta(self,**_args):
-        return []
+        schema = []
+        try:
+            if self._engine :
+                table = _args['table'] if 'table' in _args else self.table
+                _m = sqlalchemy.MetaData(bind=self._engine)
+                schema = [{"name":_attr.name,"type":str(_attr.type)} for _attr in _m.tables[table].columns]
+        except Exception as e:
+            e
+        return schema
     def _tablename(self,name) :
         
         return self.schema +'.'+name if self.schema not in [None, ''] and '.' not in name else name 
