@@ -33,37 +33,59 @@ class Mongo :
             :username   username for authentication
             :password   password for current user
         """
-        port = str(args['port']) if 'port' in args else '27017'
-        host = args['host'] if 'host' in args else 'localhost'
-        host = ":".join([host,port]) #-- Formatting host information here
-        self.uid    = args['doc'] if 'doc' in args else None  #-- document identifier
-        self.dbname = args['dbname'] if 'dbname' in args else args['db']
-        authMechanism= 'SCRAM-SHA-256' if 'mechanism' not in args else args['mechanism']
-        authSource=(args['authSource'] if 'authSource' in args else self.dbname)
+        # port = str(args['port']) if 'port' in args else '27017'
+        # host = args['host'] if 'host' in args else 'localhost'
+        # host = ":".join([host,port]) #-- Formatting host information here
+        # self.uid    = args['doc'] if 'doc' in args else None  #-- document identifier
+        # self.dbname = args['dbname'] if 'dbname' in args else args['db']
+        self.authMechanism= 'SCRAM-SHA-256' if 'mechanism' not in args else args['mechanism']
+        # authSource=(args['authSource'] if 'authSource' in args else self.dbname)
         self._lock = False if 'lock' not in args else args['lock']
 
         username = password = None
-        if 'username' in args and 'password' in args: 
-            username = args['username']       
-            password=args['password']
+        # if 'username' in args and 'password' in args: 
+        #     username = args['username']       
+        #     password=args['password']
         if 'auth_file' in args :
             _info = json.loads((open(args['auth_file'])).read())
-            username = _info['username']
-            password = _info['password']
-            if 'mechanism' in _info:
-                authMechanism = _info['mechanism']
-            if 'authSource' in _info:
-                authSource = _info['authSource']
-        
-        
+            # username = _info['username']
+            # password = _info['password']
+            # if 'mechanism' in _info:
+            #     authMechanism = _info['mechanism']
+            # if 'authSource' in _info:
+            #     authSource = _info['authSource']
+            # #
+            # # We are allowing the authentication file to set collection and databases too
+            # if 'db' in _info :
+            #     self.dbname = _info['db']
+            # if 'doc' in _info :
+            #     self.uid = _info['doc']
+            
+        else:
+            _info = {}
+        _args = dict(args,**_info)
+        for key in _args :
+            if key in ['username','password'] :
+                username = _args['username'] if key=='username' else username
+                password = _args['password'] if key == 'password' else password
+                continue
+            value = _args[key]
+            
+            self.setattr(key,value)
+        #
+        # Let us perform aliasing in order to remain backwards compatible
+
+        self.dbname = self.db if hasattr(self,'db')else self.dbname
+        self.uid    = _args['table'] if 'table' in _args else (_args['doc'] if 'doc' in _args else (_args['collection'] if 'collection' in _args else None))
         if username and password :
-            self.client = MongoClient(host,
+            self.client = MongoClient(self.host,
                       username=username,
                       password=password ,
-                      authSource=authSource,
-                      authMechanism=authMechanism)
+                      authSource=self.authSource,
+                      authMechanism=self.authMechanism)
+            
         else:
-            self.client = MongoClient(host,maxPoolSize=10000)                    
+            self.client = MongoClient(self.host,maxPoolSize=10000)                    
         
         self.db = self.client[self.dbname]
         
@@ -71,6 +93,11 @@ class Mongo :
         p = self.dbname in self.client.list_database_names() 
         q = self.uid in self.client[self.dbname].list_collection_names()
         return p and q
+    def setattr(self,key,value):
+        _allowed = ['host','port','db','doc','authSource']
+        if key in _allowed :
+            setattr(self,key,value)
+        pass
     def close(self):
         self.client.close()
 
@@ -110,7 +137,9 @@ class MongoReader(Mongo,Reader):
         else:
             collection = self.db[self.uid]                
             _filter = args['filter'] if 'filter' in args else {}
-            return collection.find(_filter)
+            _df =  pd.DataFrame(collection.find(_filter))
+            columns = _df.columns.tolist()[1:]
+            return _df[columns]
     def view(self,**args):
         """
         This function is designed to execute a view (map/reduce) operation
@@ -162,7 +191,7 @@ class MongoWriter(Mongo,Writer):
         @param info new record in the collection to be added
         """
         # document  = self.db[self.uid].find()
-        collection = self.db[self.uid]
+        #collection = self.db[self.uid]
         # if type(info) == list :
         #     self.db[self.uid].insert_many(info)
         # else:

@@ -98,7 +98,7 @@ class Console(Writer):
 		self.debug = self.write
 		self.log = self.write
 		pass
-	def write (self,**_args):
+	def write (self,logs,**_args):
 		if self.lock :
 			Console.lock.acquire()
 		try:
