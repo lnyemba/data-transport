@@ -235,8 +235,6 @@ class SQLiteWriter(SQLite,DiskWriter) :
 			cursor = self.conn.cursor()	
 			sql = " " .join(["INSERT INTO ",self.table,"(", ",".join(self.fields) ,")", "values(:values)"])
 			for row in info :
-				print (row)
-				print (row.values())
 				stream =["".join(["",value,""]) if type(value) == str else value for value in row.values()]
 				stream = json.dumps(stream).replace("[","").replace("]","")
 				
