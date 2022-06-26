@@ -189,7 +189,7 @@ class SQLiteWriter(SQLite,DiskWriter) :
 		# self.conn.row_factory = sqlite3.Row
 		# self.fields = args['fields'] if 'fields' in args else []
 		
-		if self.fields and not self.isready():
+		if self.fields and not self.isready() and self.table:
 			self.init(self.fields)
 		SQLiteWriter.connection = self.conn	
 	def init(self,fields):
@@ -210,7 +210,7 @@ class SQLiteWriter(SQLite,DiskWriter) :
 			r = r.fetchall()
 			cursor.close()
 			
-			return r[0][0]
+			return r[0][0] != 0
 		except Exception as e:
 			pass
 		return 0
