@@ -56,20 +56,22 @@ if len(sys.argv) > 1:
 class Post(Process):
     def __init__(self,**args):
         super().__init__()
-        
+        self.store = args['target']
         if 'provider' not in args['target'] :
+            pass
             self.PROVIDER = args['target']['type']
-            self.writer = 	transport.factory.instance(**args['target'])
+            # self.writer = 	transport.factory.instance(**args['target'])
         else:
             self.PROVIDER = args['target']['provider']
-            args['target']['context'] = 'write'
-            self.store = args['target']
+            self.store['context'] = 'write'
+            # self.store = args['target']
             self.store['lock'] = True
             # self.writer = transport.instance(**args['target'])
         #
         # If the table doesn't exists maybe create it ?
         #
-        self.rows 	=	 args['rows'].fillna('')
+        self.rows = args['rows']
+        # self.rows 	=	 args['rows'].fillna('')
 		
     def log(self,**_args) :
         if ETL.logger :
@@ -77,20 +79,7 @@ class Post(Process):
 		
     def run(self):
         _info = {"values":self.rows} if 'couch' in self.PROVIDER else self.rows	
-        ltypes = self.rows.dtypes.values
-        columns = self.rows.dtypes.index.tolist()
-        # if not self.writer.has() :
-
-            
-            # self.writer.make(fields=columns)
-            # ETL.logger.info(module='write',action='make-table',input={"name":self.writer.table})
-        self.log(module='write',action='make-table',input={"schema":columns})
-        for name in columns :
-            if _info[name].dtype in ['int32','int64','int','float','float32','float64'] :
-                value = 0
-            else:
-                value = ''
-            _info[name] = _info[name].fillna(value)
+       
         writer = transport.factory.instance(**self.store)
         writer.write(_info)
         writer.close()
@@ -149,9 +138,11 @@ class ETL (Process):
                 # _id = ' '.join([str(i),' table ',self.name])
                 indexes = rows[i]
                 segment = idf.loc[indexes,:].copy() #.to_dict(orient='records')
+                _name = "partition-"+str(i)
                 if segment.shape[0] == 0 :
                     continue
-                proc = Post(target = self._oargs,rows = segment,name=str(i))
+                
+                proc = Post(target = self._oargs,rows = segment,name=_name)
                 self.jobs.append(proc)
                 proc.start()
                 
@@ -167,17 +158,31 @@ class ETL (Process):
         return len(self.jobs) == 0
 def instance(**_args):
     """
+    :path ,index, id
     :param _info    list of objects with {source,target}`
     :param logger
     """
     logger = _args['logger'] if 'logger' in _args else None
-    _info = _args['info']
+    if 'path' in _args :
+        _info = json.loads((open(_args['path'])).read())
+        
+        
+        if 'index' in _args :
+            _index = int(_args['index'])
+            _info = _info[_index]
+            
+        elif 'id' in _args :
+            _info = [_item for _item in _info if '_id' in _item and _item['id'] == _args['id']]
+            _info = _info[0] if _info else _info
+    else:
+        _info = _args['info']
+    
     if logger and type(logger) != str:
         ETL.logger = logger 
     elif logger == 'console':
-        ETL.logger = transport.factory.instance(provider='console',lock=True)
+        ETL.logger = transport.factory.instance(provider='console',context='write',lock=True)
     if type(_info) in [list,dict] :
-        _config = _info if type(_info) != dict else [_info]
+        _info = _info if type(_info) != dict else [_info]
         #
         # The assumption here is that the objects within the list are {source,target} 
         jobs = []
@@ -185,6 +190,7 @@ def instance(**_args):
             
             _item['jobs'] = 5 if 'procs' not in _args else int(_args['procs'])
             _job = ETL(**_item)
+            
             _job.start()
             jobs.append(_job)
         return jobs

@@ -8,6 +8,10 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+
+@TODO:
+    - Migrate SQLite to SQL hierarchy
+    - Include Write in Chunks from pandas
 """
 import psycopg2 as pg
 import mysql.connector as my
@@ -31,6 +35,7 @@ import os
 
 class SQLRW :
     lock = RLock()
+    MAX_CHUNK = 2000000
     DRIVERS  = {"postgresql":pg,"redshift":pg,"mysql":my,"mariadb":my,"netezza":nz}
     REFERENCE = {
         "netezza":{"port":5480,"handler":nz,"dtype":"VARCHAR(512)"},
@@ -47,6 +52,7 @@ class SQLRW :
         self.table      = _args['table'] if 'table' in _args else None
         self.fields     = _args['fields'] if 'fields' in _args else []
         self.schema = _args['schema'] if 'schema' in _args else ''
+        self._chunks = 1 if 'chunks' not in _args else int(_args['chunks'])
         
         self._provider       = _args['provider'] if 'provider' in _args else None
         # _info['host'] = 'localhost' if 'host' not in _args else _args['host']
@@ -103,6 +109,13 @@ class SQLRW :
                 _m = sqlalchemy.MetaData(bind=self._engine)
                 _m.reflect()
                 schema = [{"name":_attr.name,"type":str(_attr.type)} for _attr in _m.tables[table].columns]
+                #
+                # Some house keeping work
+                _m = {'BIGINT':'INTEGER','TEXT':'STRING','DOUBLE_PRECISION':'FLOAT','NUMERIC':'FLOAT','DECIMAL':'FLOAT','REAL':'FLOAT'}
+                for _item in schema :
+                    if _item['type'] in _m :
+                        _item['type'] = _m[_item['type']]
+
         except Exception as e:
             pass
         return schema
@@ -258,14 +271,7 @@ class SQLWriter(SQLRW,Writer):
             # _fields = info.keys() if type(info) == dict else info[0].keys()
             _fields = list (_fields)
             self.init(_fields)
-        #
-        # @TODO: Use pandas/odbc ? Not sure b/c it requires sqlalchemy
-        #
-        # if type(info) != list :
-        #     #
-        #     # We are assuming 2 cases i.e dict or pd.DataFrame
-        #     info = [info]  if type(info) == dict else info.values.tolist()       
-        
+            
         try:
             table = _args['table'] if 'table' in _args else self.table
             table = self._tablename(table)
@@ -284,22 +290,36 @@ class SQLWriter(SQLRW,Writer):
                 return
             if self.lock :
                 SQLRW.lock.acquire()
-            
-            if self._engine is not None:
-                # pd.to_sql(_info,self._engine)
-                if self.schema in ['',None] :
-                    rows = _info.to_sql(table,self._engine,if_exists='append',index=False)
-                else:
-                    rows = _info.to_sql(self.table,self._engine,schema=self.schema,if_exists='append',index=False)
+            #
+            # we will adjust the chunks here in case we are not always sure of the 
+            if self._chunks == 1 and _info.shape[0] > SQLRW.MAX_CHUNK :
+                self._chunks = 10
+            _indexes = np.array_split(np.arange(_info.shape[0]),self._chunks)
+            for i in _indexes :
+                #
+                # In case we have an invalid chunk ...
+                if _info.iloc[i].shape[0] == 0 :
+                    continue 
+                #
+                # We are enabling writing by chunks/batches because some persistent layers have quotas or limitations on volume of data
                 
-            else:
-                _fields = ",".join(self.fields)
-                _sql = _sql.replace(":fields",_fields)
-                values = ", ".join("?"*len(self.fields)) if self._provider == 'netezza' else ",".join(["%s" for name in self.fields])
-                _sql = _sql.replace(":values",values)
-                cursor = self.conn.cursor()
-                cursor.executemany(_sql,_info.values.tolist())  
-                cursor.close()
+                if self._engine is not None:
+                    # pd.to_sql(_info,self._engine)
+                    if self.schema in ['',None] :
+                        rows = _info.iloc[i].to_sql(table,self._engine,if_exists='append',index=False)
+                    else:
+                        #
+                        # Writing with schema information ...
+                        rows = _info.iloc[i].to_sql(self.table,self._engine,schema=self.schema,if_exists='append',index=False)
+                    
+                else:
+                    _fields = ",".join(self.fields)
+                    _sql = _sql.replace(":fields",_fields)
+                    values = ", ".join("?"*len(self.fields)) if self._provider == 'netezza' else ",".join(["%s" for name in self.fields])
+                    _sql = _sql.replace(":values",values)
+                    cursor = self.conn.cursor()
+                    cursor.executemany(_sql,_info.iloc[i].values.tolist())  
+                    cursor.close()
             # cursor.commit() 
             
             # self.conn.commit()
@@ -382,6 +402,7 @@ class BQWriter(BigQuery,Writer):
         self.parallel = False if 'lock' not in _args else _args['lock']
         self.table = _args['table'] if 'table' in _args else None
         self.mode = {'if_exists':'append','chunksize':900000,'destination_table':self.table,'credentials':self.credentials}
+        self._chunks = 1 if 'chunks' not in _args else int(_args['chunks'])
 
     def write(self,_info,**_args) :
         try:
@@ -409,8 +430,13 @@ class BQWriter(BigQuery,Writer):
                 self.mode['table_schema'] = _args['schema']
             # _mode = copy.deepcopy(self.mode)
             _mode = self.mode
-            _df.to_gbq(**self.mode) #if_exists='append',destination_table=partial,credentials=credentials,chunksize=90000)	
-            
+            # _df.to_gbq(**self.mode) #if_exists='append',destination_table=partial,credentials=credentials,chunksize=90000)	
+            #
+            # Let us adjust the chunking here 
+            self._chunkks = 10 if _df.shape[0] > SQLRW.MAX_CHUNK and self._chunks == 1 else self._chunks 
+            _indexes = np.array_split(np.arange(_df.shape[0]),self._chunks) 
+            for i in _indexes :
+                _df.iloc[i].to_gbq(**self.mode)
         pass
 #
 # Aliasing the big query classes allowing it to be backward compatible
