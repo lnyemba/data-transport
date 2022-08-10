@@ -357,7 +357,9 @@ class BigQuery:
         table = _args['table'] 
         try:
             ref     = self.client.dataset(self.dataset).table(table)
-            return self.client.get_table(ref).schema
+            _schema =  self.client.get_table(ref).schema
+            return [{"name":_item.name,"type":_item.field_type,"description":( "" if not hasattr(_item,"description") else _item.description )} for _item in _schema]
+            
         except Exception as e:
             return []
     def has(self,**_args):

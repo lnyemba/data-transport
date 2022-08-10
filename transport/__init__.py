@@ -52,8 +52,38 @@ from google.cloud import bigquery as bq
 import nzpy as nz   #--- netezza drivers
 import os
 
+class providers :
+	POSTGRESQL 	= 'postgresql'
+	MONGODB 	= 'mongodb'
+	BIGQUERY	='bigquery'
+	FILE 	= 'file'
+	ETL = 'etl'
+	SQLITE = 'sqlite'
+	REDSHIFT = 'redshift'
+	NETEZZA = 'netezza'
+	MYSQL = 'mysql'
+	RABBITMQ = 'rabbitmq'
+	MARIADB  = 'mariadb'
+	COUCHDB = 'couch'
+	CONSOLE = 'console'
+	ETL = 'etl'
+	#
+	# synonyms of the above
+	BQ 		= BIGQUERY
+	MONGO 	= MONGODB
+	PG 		= POSTGRESQL
+	PSQL 	= POSTGRESQL
 
-
+class IEncoder (json.JSONEncoder):
+	def default (self,object):
+		if type(object) == np.integer :
+			return int(object)
+		elif type(object) == np.floating:
+			return float(object)
+		elif type(object) == np.ndarray :
+			return object.tolist()
+		else:
+			return super(IEncoder,self).default(object)
 class factory :
 	TYPE = {"sql":{"providers":["postgresql","mysql","neteeza","bigquery","mariadb","redshift"]}}
 	PROVIDERS = {
@@ -149,9 +179,10 @@ def instance(**_args):
 		#
 		# Let us try to establish an sqlalchemy wrapper
 		try:
-			
+			account = ''
 			host = ''
-			if provider not in ['bigquery','mongodb','mongo','couchdb','sqlite','console','etl','file','rabbitmq'] :
+			if provider not in [providers.BIGQUERY,providers.MONGODB, providers.COUCHDB, providers.SQLITE, providers.CONSOLE,providers.ETL, providers.FILE, providers.RABBITMQ] :
+			# if provider not in ['bigquery','mongodb','mongo','couchdb','sqlite','console','etl','file','rabbitmq'] :
 				#
 				# In these cases we are assuming RDBMS and thus would exclude NoSQL and BigQuery
 				username = args['username'] if 'username' in args else ''
@@ -165,11 +196,13 @@ def instance(**_args):
 					host = host+":"+str(args['port'])
 				
 				database =  args['database']	
-			elif provider == 'sqlite':
+			elif provider in [providers.SQLITE,providers.FILE]:
 				account = ''
 				host = ''
 				database = args['path'] if 'path' in args else args['database']
-			if provider not in ['mongodb','mongo','couchdb','bigquery','console','etl','file','rabbitmq'] :
+
+			if provider not in [providers.MONGODB, providers.COUCHDB, providers.BIGQUERY, providers.CONSOLE, providers.ETL,providers.FILE,providers.RABBITMQ] :
+			# if provider not in ['mongodb','mongo','couchdb','bigquery','console','etl','file','rabbitmq'] :
 				uri = ''.join([provider,"://",account,host,'/',database])
 				
 				e = sqlalchemy.create_engine (uri,future=True)
@@ -178,6 +211,7 @@ def instance(**_args):
 			#
 			# @TODO: Include handling of bigquery with SQLAlchemy
 		except Exception as e:
+			print (_args)
 			print (e)
 
 		return pointer(**args) 
