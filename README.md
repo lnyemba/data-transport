@@ -25,7 +25,8 @@ Mostly data scientists that don't really care about the underlying database and 
 
 1. Familiarity with **pandas data-frames**
 2. Connectivity **drivers** are included
-3. Useful for data migrations or ETL
+3. Mining data from various sources
+4. Useful for data migrations or ETL
 
 # Usage
 
@@ -35,7 +36,8 @@ Within the virtual environment perform the following :
 
     pip install git+https://dev.the-phi.com/git/steve/data-transport.git
 
-Once installed **data-transport** can be used as a library in code or a command line interface (CLI)
+Once installed **data-transport** can be used as a library in code or a command line interface (CLI), as a CLI it is used for ETL and requires a configuration file.
+
 
 ## Data Transport as a Library (in code)
 ---
@@ -112,12 +114,71 @@ df = reader.read(mongo=_command)
 print (df.head())
 reader.close()
 ```
-**Writing to Mongodb**
+**Read/Writing to Mongodb**
 ---
+
+Scenario 1: Mongodb with security in place
+    
+1. Define an authentication file on disk
+
+    The semantics of the attributes are provided by mongodb, please visit [mongodb documentation](https://mongodb.org/docs). In this example the file is located on _/transport/mongo.json_
+<div style="display:grid; grid-template-columns:60% auto; gap:4px">
+<div>
+<b>configuration file</b>
+
+```
+{
+    "username":"me","password":"changeme",
+    "mechanism":"SCRAM-SHA-1",
+    "authSource":"admin"
+}
+```
+<b>Connecting to Mongodb </b>
+
+```
+import transport
+PIPELINE = ... #-- do this yourself
+MONGO_KEY = '/transport/mongo.json'
+mreader = transport.factory.instance(provider=transport.providers.MONGODB,auth_file=MONGO_KEY,context='read',db='mydb',doc='logs')
+_aggregateDF = mreader.read(mongo=PIPELINE) #--results of a aggregate pipeline
+_collectionDF= mreader.read()
+
+
+```
+
+In order to enable write, change **context** attribute to **'read'**.
+</div>
+<div>
+- The configuration file is in JSON format    
+- The commands passed to mongodb are the same as you would if you applied runCommand in mongodb
+- The output is a pandas data-frame
+- By default the transport reads, to enable write operations use **context='write'**
+
+|parameters|description |
+| --- | --- |
+|db| Name of the database|
+|port| Port number to connect to
+|doc| Name of the collection of documents|
+|username|Username |
+|password|password|
+|authSource|user database that has authentication info|
+|mechanism|Mechnism used for authentication|
+
+**NOTE**
+
+Arguments like **db** or **doc** can be placed in the authentication file
+</div> 
+</div>
+
+**Limitations**
+
+Reads and writes aren't encapsulated in the same object, this is to allow the calling code to deliberately perform actions and hopefully minimize accidents associated with data wrangling. 
+
+
 ```
 import transport
 improt pandas as pd
-writer = factory.instance(provider='mongodb',context='write',host='localhost',port='27018',db='example',doc='logs')
+writer = factory.instance(provider=transport.providers.MONGODB,context='write',host='localhost',port='27018',db='example',doc='logs')
 
 df = pd.DataFrame({"names":["steve","nico"],"age":[40,30]})
 writer.write(df)
