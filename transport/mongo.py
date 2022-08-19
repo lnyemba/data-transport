@@ -108,6 +108,7 @@ class MongoReader(Mongo,Reader):
     def __init__(self,**args):
         Mongo.__init__(self,**args)
     def read(self,**args):
+        
         if 'mongo' in args :
             #
             # @TODO:
