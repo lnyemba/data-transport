@@ -115,4 +115,21 @@ class Console(Writer):
 		finally:
 			if self.lock :
 				Console.lock.release()
-	
+"""
+@NOTE : Experimental !!
+"""	
+class Proxy :
+	"""
+	This class will forward a call to a function that is provided by the user code
+	"""
+	def __init__(self,**_args):
+		self.callback = _args['callback']
+	def read(self,**_args) :
+		try:
+			return self.callback(**_args)
+		except Exception as e:
+			return self.callback()
+
+		pass
+	def write(self,data,**_args):
+		self.callback(data,**_args)

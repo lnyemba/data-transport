@@ -10,7 +10,7 @@ from bson.binary    import Binary
 import nujson as json
 from datetime import datetime
 import pandas as pd
-
+import numpy as np
 import gridfs
 # from transport import Reader,Writer
 import sys
@@ -33,33 +33,15 @@ class Mongo :
             :username   username for authentication
             :password   password for current user
         """
-        # port = str(args['port']) if 'port' in args else '27017'
-        # host = args['host'] if 'host' in args else 'localhost'
-        # host = ":".join([host,port]) #-- Formatting host information here
-        # self.uid    = args['doc'] if 'doc' in args else None  #-- document identifier
-        # self.dbname = args['dbname'] if 'dbname' in args else args['db']
+
         self.authMechanism= 'SCRAM-SHA-256' if 'mechanism' not in args else args['mechanism']
         # authSource=(args['authSource'] if 'authSource' in args else self.dbname)
         self._lock = False if 'lock' not in args else args['lock']
 
         username = password = None
-        # if 'username' in args and 'password' in args: 
-        #     username = args['username']       
-        #     password=args['password']
         if 'auth_file' in args :
             _info = json.loads((open(args['auth_file'])).read())
-            # username = _info['username']
-            # password = _info['password']
-            # if 'mechanism' in _info:
-            #     authMechanism = _info['mechanism']
-            # if 'authSource' in _info:
-            #     authSource = _info['authSource']
-            # #
-            # # We are allowing the authentication file to set collection and databases too
-            # if 'db' in _info :
-            #     self.dbname = _info['db']
-            # if 'doc' in _info :
-            #     self.uid = _info['doc']
+
             
         else:
             _info = {}
@@ -100,7 +82,8 @@ class Mongo :
         pass
     def close(self):
         self.client.close()
-
+    def meta(self,**_args):
+        return []
 class MongoReader(Mongo,Reader):
     """
     This class will read from a mongodb data store and return the content of a document (not a collection)
@@ -113,6 +96,11 @@ class MongoReader(Mongo,Reader):
             #
             # @TODO:
             cmd = args['mongo']
+            if "aggregate" in cmd :
+                if "allowDiskUse" not in cmd :
+                    cmd["allowDiskUse"] = True
+                if "cursor" not in cmd :
+                    cmd["cursor"] = {}
             r =  []
             out = self.db.command(cmd)
             #@TODO: consider using a yield (generator) works wonders

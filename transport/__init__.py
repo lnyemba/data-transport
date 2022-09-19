@@ -59,6 +59,7 @@ class providers :
 	FILE 	= 'file'
 	ETL = 'etl'
 	SQLITE = 'sqlite'
+	SQLITE3= 'sqlite'
 	REDSHIFT = 'redshift'
 	NETEZZA = 'netezza'
 	MYSQL = 'mysql'
