@@ -34,7 +34,7 @@ class Mongo :
             :password   password for current user
         """
 
-        self.authMechanism= 'SCRAM-SHA-256' if 'mechanism' not in args else args['mechanism']
+        self.mechanism= 'SCRAM-SHA-256' if 'mechanism' not in args else args['mechanism']
         # authSource=(args['authSource'] if 'authSource' in args else self.dbname)
         self._lock = False if 'lock' not in args else args['lock']
 
@@ -64,7 +64,7 @@ class Mongo :
                       username=username,
                       password=password ,
                       authSource=self.authSource,
-                      authMechanism=self.authMechanism)
+                      authMechanism=self.mechanism)
             
         else:
             self.client = MongoClient(self.host,maxPoolSize=10000)                    
@@ -76,7 +76,7 @@ class Mongo :
         q = self.uid in self.client[self.dbname].list_collection_names()
         return p and q
     def setattr(self,key,value):
-        _allowed = ['host','port','db','doc','authSource']
+        _allowed = ['host','port','db','doc','authSource','mechanism']
         if key in _allowed :
             setattr(self,key,value)
         pass
@@ -92,10 +92,10 @@ class MongoReader(Mongo,Reader):
         Mongo.__init__(self,**args)
     def read(self,**args):
         
-        if 'mongo' in args :
+        if 'mongo' in args or 'cmd' :
             #
             # @TODO:
-            cmd = args['mongo']
+            cmd = args['mongo'] if 'mongo' in args else args['cmd']
             if "aggregate" in cmd :
                 if "allowDiskUse" not in cmd :
                     cmd["allowDiskUse"] = True

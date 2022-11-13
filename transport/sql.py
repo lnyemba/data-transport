@@ -430,6 +430,9 @@ class BQWriter(BigQuery,Writer):
                 self.mode['destination_table'] = _args['table'].strip()
             if 'schema' in _args :
                 self.mode['table_schema'] = _args['schema']
+                #
+                # Let us insure that the types are somewhat compatible ...
+                # _map = {'INTEGER':np.int64,'DATETIME':'datetime64[ns]','TIMESTAMP':'datetime64[ns]','FLOAT':np.float64,'DOUBLE':np.float64,'STRING':str}
             # _mode = copy.deepcopy(self.mode)
             _mode = self.mode
             # _df.to_gbq(**self.mode) #if_exists='append',destination_table=partial,credentials=credentials,chunksize=90000)	
