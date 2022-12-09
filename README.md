@@ -42,11 +42,13 @@ Once installed **data-transport** can be used as a library in code or a command 
 ## Data Transport as a Library (in code)
 ---
 
-The data-transport can be used within code as a library 
+The data-transport can be used within code as a library, and offers the following capabilities:
+
 * Read/Write against [mongodb](https://github.com/lnyemba/data-transport/wiki/mongodb)
 * Read/Write against tranditional [RDBMS](https://github.com/lnyemba/data-transport/wiki/rdbms)
 * Read/Write against [bigquery](https://github.com/lnyemba/data-transport/wiki/bigquery)
 * ETL CLI/Code [ETL](https://github.com/lnyemba/data-transport/wiki/etl)
+* Support for pre/post conditions i.e it is possible to specify queries to run before or after a read or write
 
 The read/write functions make data-transport a great candidate for **data-science**; **data-engineering** or all things pertaining to data. It enables operations across multiple data-stores(relational or not)
 
@@ -60,7 +62,7 @@ It is possible to perform ETL within custom code as follows :
     import transport
     import time
     
-    _info = [{source:{'provider':'sqlite','path':'/home/me/foo.csv','table':'me'},target:{provider:'bigquery',private_key='/home/me/key.json','table':'me','dataset':'mydataset'}}, ...]    
+    _info = [{source:{'provider':'sqlite','path':'/home/me/foo.csv','table':'me',"pipeline":{"pre":[],"post":[]}},target:{provider:'bigquery',private_key='/home/me/key.json','table':'me','dataset':'mydataset'}}, ...]    
     procs = transport.factory.instance(provider='etl',info=_info)
     #
     #

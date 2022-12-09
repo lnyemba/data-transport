@@ -192,6 +192,10 @@ class SQLReader(SQLRW,Reader) :
             _sql = _sql.replace(":fields",_fields)
         if 'limit' in _args :
             _sql = _sql + " LIMIT "+str(_args['limit'])
+        #
+        # @TODO:
+        # It is here that we should inspect to see if there are any pre/post conditions
+        #
         return self.apply(_sql)
     def close(self) :
         try:
