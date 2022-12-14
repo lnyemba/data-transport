@@ -34,7 +34,7 @@ Mostly data scientists that don't really care about the underlying database and 
 
 Within the virtual environment perform the following :
 
-    pip install git+https://dev.the-phi.com/git/steve/data-transport.git
+    pip install git+https://github.com/lnyemba/data-transport.git
 
 Once installed **data-transport** can be used as a library in code or a command line interface (CLI), as a CLI it is used for ETL and requires a configuration file.
 

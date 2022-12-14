@@ -92,7 +92,7 @@ class MongoReader(Mongo,Reader):
         Mongo.__init__(self,**args)
     def read(self,**args):
         
-        if 'mongo' in args or 'cmd' :
+        if 'mongo' in args or 'cmd' in args:
             #
             # @TODO:
             cmd = args['mongo'] if 'mongo' in args else args['cmd']
