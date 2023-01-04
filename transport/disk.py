@@ -7,6 +7,7 @@ if sys.version_info[0] > 2 :
 else:
 	from common import Reader,Writer
 # import nujson as json
+import json
 # from threading import Lock
 import sqlite3
 import pandas as pd
