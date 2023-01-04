@@ -6,7 +6,7 @@ if sys.version_info[0] > 2 :
     from transport.common import Reader, Writer #, factory
 else:
 	from common import Reader,Writer
-import nujson as json
+# import nujson as json
 # from threading import Lock
 import sqlite3
 import pandas as pd
