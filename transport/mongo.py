@@ -7,7 +7,7 @@ This file is a wrapper around mongodb for reading/writing content against a mong
 from pymongo        import MongoClient
 from bson.objectid  import ObjectId
 from bson.binary    import Binary
-import nujson as json
+# import nujson as json
 from datetime import datetime
 import pandas as pd
 import numpy as np
