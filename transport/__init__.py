@@ -55,6 +55,7 @@ import os
 class providers :
 	POSTGRESQL 	= 'postgresql'
 	MONGODB 	= 'mongodb'
+	
 	BIGQUERY	='bigquery'
 	FILE 	= 'file'
 	ETL = 'etl'
@@ -72,8 +73,10 @@ class providers :
 	# synonyms of the above
 	BQ 		= BIGQUERY
 	MONGO 	= MONGODB
+	FERRETDB= MONGODB
 	PG 		= POSTGRESQL
 	PSQL 	= POSTGRESQL
+	PGSQL	= POSTGRESQL
 
 class IEncoder (json.JSONEncoder):
 	def default (self,object):

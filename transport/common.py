@@ -22,6 +22,7 @@ import numpy as np
 import json
 import importlib 
 from multiprocessing import RLock
+import queue
 # import couch
 # import mongo
 
@@ -115,6 +116,8 @@ class Console(Writer):
 		finally:
 			if self.lock :
 				Console.lock.release()
+
+
 """
 @NOTE : Experimental !!
 """	

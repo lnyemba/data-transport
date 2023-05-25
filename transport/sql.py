@@ -278,7 +278,9 @@ class SQLWriter(SQLRW,Writer):
             
         try:
             table = _args['table'] if 'table' in _args else self.table
+            self.schema = _args['schema'] if 'schema' in _args else self.schema
             table = self._tablename(table)
+            
             _sql = "INSERT INTO :table (:fields) VALUES (:values)".replace(":table",table) #.replace(":table",self.table).replace(":fields",_fields)
            
             if type(info) == list :

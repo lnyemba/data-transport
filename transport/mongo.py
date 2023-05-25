@@ -124,7 +124,15 @@ class MongoReader(Mongo,Reader):
                 
             return pd.DataFrame(r)
         else:
-            collection = self.db[self.uid]                
+            if 'table' in args  or 'collection' in args :
+                if 'table' in args:
+                    _uid = args['table']
+                elif 'collection' in args :
+                    _uid = args['collection']
+                else:
+                    _uid = self.uid 
+
+            collection = self.db[_uid]                
             _filter = args['filter'] if 'filter' in args else {}
             _df =  pd.DataFrame(collection.find(_filter))
             columns = _df.columns.tolist()[1:]
@@ -185,7 +193,10 @@ class MongoWriter(Mongo,Writer):
         #     self.db[self.uid].insert_many(info)
         # else:
         try:
-            _uid = self.uid if 'doc' not in _args else _args['doc']
+            if 'table' in _args or 'collection' in _args :
+                _uid = _args['table'] if 'table' in _args else _args['collection']
+            else:
+                _uid = self.uid if 'doc' not in _args else _args['doc']
             if self._lock :
                 Mongo.lock.acquire()
             if type(info) == list or type(info) == pd.DataFrame :
