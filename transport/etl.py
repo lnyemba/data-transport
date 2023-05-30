@@ -106,9 +106,11 @@ class ETL (Process):
         # self.sql = _args['source']['sql'] if 'sql' in _args['source'] else None
         # self.cmd = _args['source']['cmd'] if 'cmd' in _args['source'] else None
         # self._oargs = _args['target'] #transport.factory.instance(**_args['target'])
-        self._source = _args['source'] #dict(_args ['source'],**{'context':'write'})
-        self._target = _args['target'] #dict(_args['target'],**{'context':'read','lock':True})
-
+        self._source = _args ['source']
+        self._target = _args['target']
+        self._source['context'] = 'read'
+        self._target['context'] = 'write'
+       
         self.JOB_COUNT =  _args['jobs']
         self.jobs = []
 		# self.logger = transport.factory.instance(**_args['logger'])
@@ -131,6 +133,8 @@ class ETL (Process):
         # writing the data to a designated data source 
         #
         try:
+           
+            
             _log = {"name":self.name,"rows":{"input":0,"output":0}}
             _reader = transport.factory.instance(**self._source)
             if 'table' in self._source :

@@ -37,7 +37,7 @@ class Mongo :
         self.mechanism= 'SCRAM-SHA-256' if 'mechanism' not in args else args['mechanism']
         # authSource=(args['authSource'] if 'authSource' in args else self.dbname)
         self._lock = False if 'lock' not in args else args['lock']
-
+        self.dbname = None
         username = password = None
         if 'auth_file' in args :
             _info = json.loads((open(args['auth_file'])).read())
@@ -46,17 +46,20 @@ class Mongo :
         else:
             _info = {}
         _args = dict(args,**_info)
+        _map = {'dbname':'db','database':'db','table':'uid','collection':'uid','col':'uid','doc':'uid'}
         for key in _args :
             if key in ['username','password'] :
                 username = _args['username'] if key=='username' else username
                 password = _args['password'] if key == 'password' else password
                 continue
             value = _args[key]
+            if key in _map :
+                key = _map[key]
             
             self.setattr(key,value)
         #
         # Let us perform aliasing in order to remain backwards compatible
-
+        
         self.dbname = self.db if hasattr(self,'db')else self.dbname
         self.uid    = _args['table'] if 'table' in _args else (_args['doc'] if 'doc' in _args else (_args['collection'] if 'collection' in _args else None))
         if username and password :
