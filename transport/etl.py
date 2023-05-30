@@ -106,8 +106,8 @@ class ETL (Process):
         # self.sql = _args['source']['sql'] if 'sql' in _args['source'] else None
         # self.cmd = _args['source']['cmd'] if 'cmd' in _args['source'] else None
         # self._oargs = _args['target'] #transport.factory.instance(**_args['target'])
-        self._source = dict(_args ['source'],**{'context':'write'})
-        self._target = dict(_args['target'],**{'context':'read','lock':True})
+        self._source = _args['source'] #dict(_args ['source'],**{'context':'write'})
+        self._target = _args['target'] #dict(_args['target'],**{'context':'read','lock':True})
 
         self.JOB_COUNT =  _args['jobs']
         self.jobs = []
