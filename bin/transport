@@ -70,12 +70,15 @@ if __name__ == '__main__' :
 			
 			procs = 1 if 'procs' not in SYS_ARGS else int(SYS_ARGS['procs'])
 			jobs = transport.factory.instance(provider='etl',info=_info,procs=procs)
+			print ([len(jobs),' Jobs are running'])
+			N = len(jobs)
 			while jobs :
 				x = len(jobs)
 				jobs = [_job for _job in jobs if _job.is_alive()]
 				if x != len(jobs) :
-					print ([len(jobs),'... jobs running'])
+					print ([len(jobs),'... jobs still running'])
 				time.sleep(1)
+			print ([N,' Finished running'])
 		except Exception as e:
 			
 			print (e)
