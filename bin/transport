@@ -65,6 +65,8 @@ if __name__ == '__main__' :
 				_index = int(SYS_ARGS['index'])
 				_info = [_item for _item in _info if _info.index(_item) == _index]
 				pass
+			elif 'id' in SYS_ARGS :
+				_info = [_item for _item in _info if 'id' in _item and _item['id'] == SYS_ARGS['id']]
 			
 			procs = 1 if 'procs' not in SYS_ARGS else int(SYS_ARGS['procs'])
 			jobs = transport.factory.instance(provider='etl',info=_info,procs=procs)
