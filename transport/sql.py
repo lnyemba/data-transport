@@ -123,28 +123,31 @@ class SQLRW :
         
         return self.schema +'.'+name if self.schema not in [None, ''] and '.' not in name else name 
     def has(self,**_args):
-        found = False
-        try:
+        return self.meta(**_args)
+        # found = False
+        # try:
             
-            table = self._tablename(_args['table'])if 'table' in _args else self._tablename(self.table)
-            sql = "SELECT * FROM :table LIMIT 1".replace(":table",table)
-            if self._engine :
-                _conn = self._engine.connect()
-            else:
-                _conn = self.conn
-            found = pd.read_sql(sql,_conn).shape[0] 
-            found = True
+        #     table = self._tablename(_args['table'])if 'table' in _args else self._tablename(self.table)
+        #     sql = "SELECT * FROM :table LIMIT 1".replace(":table",table)
+        #     if self._engine :
+        #         _conn = self._engine.connect()
+        #     else:
+        #         _conn = self.conn
+        #     found = pd.read_sql(sql,_conn).shape[0] 
+        #     found = True
 
-        except Exception as e:
-            pass
-        finally:
-            if self._engine :
-                _conn.close()
-        return found
+        # except Exception as e:
+        #     print (e)
+        #     pass
+        # finally:
+        #     if not self._engine :
+        #         _conn.close()
+        # return found
     def isready(self):
         _sql = "SELECT * FROM :table LIMIT 1".replace(":table",self.table)
         try:
-            return pd.read_sql(_sql,self.conn).columns.tolist()
+            _conn = self.conn if not hasattr(self,'_engine') else self._engine
+            return pd.read_sql(_sql,_conn).columns.tolist()
         except Exception as e:
             pass
         return False
@@ -154,22 +157,24 @@ class SQLRW :
         :param _sql     insert/select statement
         @TODO: Store procedure calls
         """
-        cursor = self.conn.cursor()
+        # 
         _out = None
         try:
-            if "select" in _sql.lower() :
+            if _sql.lower().startswith('select') :
                 
-                # _conn = self._engine if self._engine else self.conn
-                return pd.read_sql(_sql,self.conn)
+                _conn = self._engine if self._engine else self.conn
+                return pd.read_sql(_sql,_conn)
             else:
                 # Executing a command i.e no expected return values ...
+                cursor = self.conn.cursor()
                 cursor.execute(_sql)
                 self.conn.commit()
         except Exception as e :
             print (e)    
         finally:
-            self.conn.commit()
-            cursor.close()
+            if not self._engine :
+                self.conn.commit()
+                # cursor.close()
     def close(self):
         try:
             self.conn.close()
@@ -184,12 +189,21 @@ class SQLReader(SQLRW,Reader) :
         if 'sql' in _args :            
             _sql = (_args['sql'])
         else:
-            table = self.table if self.table is not None else _args['table']
+            if 'table' in _args :
+                table = _args['table']
+            else:
+                table = self.table
+            # table = self.table if self.table is not None else _args['table']
             _sql = "SELECT :fields FROM "+self._tablename(table)
             if 'filter' in _args :
                 _sql = _sql +" WHERE "+_args['filter']
-            _fields = '*' if not self.fields else ",".join(self.fields) 
+            if 'fields' in _args :
+                _fields = _args['fields']
+            else:
+                _fields = '*' if not self.fields else ",".join(self.fields) 
             _sql = _sql.replace(":fields",_fields)
+        #
+        # At this point we have a query we can execute gracefully
         if 'limit' in _args :
             _sql = _sql + " LIMIT "+str(_args['limit'])
         #
