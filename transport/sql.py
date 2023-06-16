@@ -106,8 +106,13 @@ class SQLRW :
         try:
             if self._engine :
                 table = _args['table'] if 'table' in _args else self.table
-                _m = sqlalchemy.MetaData(bind=self._engine)
-                _m.reflect()
+                if sqlalchemy.__version__.startswith('1.') :
+                    _m = sqlalchemy.MetaData(bind=self._engine)
+                    _m.reflect()
+                else:
+                    
+                    _m = sqlalchemy.MetaData()                    
+                    _m.reflect(bind=self._engine)
                 schema = [{"name":_attr.name,"type":str(_attr.type)} for _attr in _m.tables[table].columns]
                 #
                 # Some house keeping work
@@ -117,6 +122,7 @@ class SQLRW :
                         _item['type'] = _m[_item['type']]
 
         except Exception as e:
+            print (e)
             pass
         return schema
     def _tablename(self,name) :
