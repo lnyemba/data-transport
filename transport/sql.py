@@ -385,7 +385,7 @@ class BigQuery:
         try:
             if table :
                 _dataset = self.dataset if 'dataset' not in _args else _args['dataset']
-                sql = f"""SELECT column_name as table_name, data_type as field_type FROM {_dataset}.INFORMATION_SCHEMA.COLUMNS WHERE table_name = '{table}' """
+                sql = f"""SELECT column_name as field_name, data_type as field_type FROM {_dataset}.INFORMATION_SCHEMA.COLUMNS WHERE table_name = '{table}' """
                 return self.read(sql=sql).to_dict(orient='records')
                 # ref     = self.client.dataset(self.dataset).table(table)
                 
