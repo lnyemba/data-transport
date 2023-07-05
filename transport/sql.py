@@ -381,14 +381,20 @@ class BigQuery:
         :param sql      sql query to be pulled,
         """
         table = _args['table'] if 'table' in _args else self.table
+        
         try:
             if table :
-                ref     = self.client.dataset(self.dataset).table(table)
-                _schema =  self.client.get_table(ref).schema
-                return [{"name":_item.name,"type":_item.field_type,"description":( "" if not hasattr(_item,"description") else _item.description )} for _item in _schema]
+                _dataset = self.dataset if 'dataset' not in _args else _args['dataset']
+                sql = f"""SELECT column_name as table_name, data_type as field_type FROM {_dataset}.INFORMATION_SCHEMA.COLUMNS WHERE table_name = '{table}' """
+                return self.read(sql=sql).to_dict(orient='records')
+                # ref     = self.client.dataset(self.dataset).table(table)
+                
+                # _schema =  self.client.get_table(ref).schema
+                # return [{"name":_item.name,"type":_item.field_type,"description":( "" if not hasattr(_item,"description") else _item.description )} for _item in _schema]
             else :
                 return []
         except Exception as e:
+            
             return []
     def has(self,**_args):
         found = False
