@@ -380,12 +380,14 @@ class BigQuery:
         :param table    name of the name WITHOUT including dataset
         :param sql      sql query to be pulled,
         """
-        table = _args['table'] 
+        table = _args['table'] if 'table' in _args else self.table
         try:
-            ref     = self.client.dataset(self.dataset).table(table)
-            _schema =  self.client.get_table(ref).schema
-            return [{"name":_item.name,"type":_item.field_type,"description":( "" if not hasattr(_item,"description") else _item.description )} for _item in _schema]
-            
+            if table :
+                ref     = self.client.dataset(self.dataset).table(table)
+                _schema =  self.client.get_table(ref).schema
+                return [{"name":_item.name,"type":_item.field_type,"description":( "" if not hasattr(_item,"description") else _item.description )} for _item in _schema]
+            else :
+                return []
         except Exception as e:
             return []
     def has(self,**_args):
