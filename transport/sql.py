@@ -306,7 +306,7 @@ class SQLWriter(SQLRW,Writer):
                 if type(_args['schema']) == str :
                     self.schema = _args['schema'] if 'schema' in _args else self.schema
                 elif type(_args['schema']) == list:
-                    self.make(schema=_args['schema'])
+                    self.make(table=table,schema=_args['schema'])
                     pass
             # self.schema = _args['schema'] if 'schema' in _args else self.schema
             table = self._tablename(table)
