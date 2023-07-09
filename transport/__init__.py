@@ -21,7 +21,7 @@ The configuration for the data-store is as follows :
 		provider:'mongodb',[port:27017],[host:localhost],db:<name>,doc:<_name>,context:<read|write>
 """
 __author__ = 'The Phi Technology'
-__version__= '1.7.84'
+__version__= '1.8.0'
 import pandas 	as pd
 import numpy 	as np
 import json
