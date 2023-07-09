@@ -4,11 +4,12 @@ This is a build file for the
 from setuptools import setup, find_packages
 import os
 import sys
+from transport import __version__
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read() 
 args    = {
     "name":"data-transport",
-    "version":"1.7.6",
+    "version":__version__,
     "author":"The Phi Technology LLC","author_email":"info@the-phi.com",
     "license":"MIT",
     "packages":["transport"]}

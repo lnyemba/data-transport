@@ -298,7 +298,17 @@ class SQLWriter(SQLRW,Writer):
             
         try:
             table = _args['table'] if 'table' in _args else self.table
-            self.schema = _args['schema'] if 'schema' in _args else self.schema
+            #
+            # In SQL, schema can stand for namespace or the structure of a table
+            # In case we have a list, we are likely dealing with table structure
+            #
+            if 'schema' in _args :
+                if type(_args['schema']) == str :
+                    self.schema = _args['schema'] if 'schema' in _args else self.schema
+                elif type(_args['schema']) == list:
+                    self.make(schema=_args['schema'])
+                    pass
+            # self.schema = _args['schema'] if 'schema' in _args else self.schema
             table = self._tablename(table)
             
             _sql = "INSERT INTO :table (:fields) VALUES (:values)".replace(":table",table) #.replace(":table",self.table).replace(":fields",_fields)
@@ -385,7 +395,7 @@ class BigQuery:
         try:
             if table :
                 _dataset = self.dataset if 'dataset' not in _args else _args['dataset']
-                sql = f"""SELECT column_name as field_name, data_type as field_type FROM {_dataset}.INFORMATION_SCHEMA.COLUMNS WHERE table_name = '{table}' """
+                sql = f"""SELECT column_name as name, data_type as type FROM {_dataset}.INFORMATION_SCHEMA.COLUMNS WHERE table_name = '{table}' """
                 return self.read(sql=sql).to_dict(orient='records')
                 # ref     = self.client.dataset(self.dataset).table(table)
                 
