@@ -129,7 +129,7 @@ class SQLRW :
         
         return self.schema +'.'+name if self.schema not in [None, ''] and '.' not in name else name 
     def has(self,**_args):
-        return len(self.meta(**_args)) > 0
+        return self.meta(**_args)
         # found = False
         # try:
             
