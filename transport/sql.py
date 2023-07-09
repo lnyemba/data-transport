@@ -305,7 +305,7 @@ class SQLWriter(SQLRW,Writer):
             if 'schema' in _args :
                 if type(_args['schema']) == str :
                     self.schema = _args['schema'] if 'schema' in _args else self.schema
-                elif type(_args['schema']) == list and not self.has(table):
+                elif type(_args['schema']) == list and not self.has(table=table):
                     self.make(table=table,schema=_args['schema'])
                     pass
             # self.schema = _args['schema'] if 'schema' in _args else self.schema
@@ -409,7 +409,8 @@ class BigQuery:
     def has(self,**_args):
         found = False
         try:
-            found = self.meta(**_args) is not None
+            _has = self.meta(**_args)
+            found = _has is not None and len(_has) > 0 
         except Exception as e:
             pass
         return found
