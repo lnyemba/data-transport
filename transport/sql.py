@@ -129,7 +129,7 @@ class SQLRW :
         
         return self.schema +'.'+name if self.schema not in [None, ''] and '.' not in name else name 
     def has(self,**_args):
-        return self.meta(**_args)
+        return len(self.meta(**_args)) > 0
         # found = False
         # try:
             
@@ -305,7 +305,7 @@ class SQLWriter(SQLRW,Writer):
             if 'schema' in _args :
                 if type(_args['schema']) == str :
                     self.schema = _args['schema'] if 'schema' in _args else self.schema
-                elif type(_args['schema']) == list:
+                elif type(_args['schema']) == list and not self.has(table):
                     self.make(table=table,schema=_args['schema'])
                     pass
             # self.schema = _args['schema'] if 'schema' in _args else self.schema
