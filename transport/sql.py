@@ -307,7 +307,10 @@ class SQLWriter(SQLRW,Writer):
             if 'schema' in _args :
                 if type(_args['schema']) == str :
                     self.schema = _args['schema'] if 'schema' in _args else self.schema
-                elif type(_args['schema']) == list and not self.has(table=table):
+                elif type(_args['schema']) == list and len(_args['schema']) > 0 and not self.has(table=table):
+                    #
+                    # There is a messed up case when an empty array is passed (no table should be created)
+                    #
                     self.make(table=table,schema=_args['schema'])
                     pass
             # self.schema = _args['schema'] if 'schema' in _args else self.schema
