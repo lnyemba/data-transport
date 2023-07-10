@@ -235,16 +235,16 @@ class SQLWriter(SQLRW,Writer):
         self._cast = False if 'cast' not in _args else _args['cast']
         
     def init(self,fields=None):
-        if not fields :
-            try:                
-                table = self._tablename(self.table)
-                self.fields = pd.read_sql_query("SELECT * FROM :table LIMIT 1".replace(":table",table),self.conn).columns.tolist()
-            except Exception as e:
-                pass
-            finally:
-                pass
-        else:
-            self.fields = fields;
+        # if not fields :
+        #     try:                
+        #         table = self._tablename(self.table)
+        #         self.fields = pd.read_sql_query("SELECT * FROM :table LIMIT 1".replace(":table",table),self.conn).columns.tolist()
+        #     except Exception as e:
+        #         pass
+        #     finally:
+        #         pass
+        # else:
+        self.fields = fields;
 
     def make(self,**_args):
         table = self._tablename(self.table) if 'table' not in _args else self._tablename(_args['table'])
