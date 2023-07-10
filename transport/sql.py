@@ -239,6 +239,8 @@ class SQLWriter(SQLRW,Writer):
             try:                
                 table = self._tablename(self.table)
                 self.fields = pd.read_sql_query("SELECT * FROM :table LIMIT 1".replace(":table",table),self.conn).columns.tolist()
+            except Exception as e:
+                pass
             finally:
                 pass
         else:
