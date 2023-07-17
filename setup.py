@@ -4,13 +4,16 @@ This is a build file for the
 from setuptools import setup, find_packages
 import os
 import sys
-from transport import __version__
+from transport.version import __version__,__author__
+# __author__ = 'The Phi Technology'
+# __version__= '1.8.0'
+
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read() 
 args    = {
     "name":"data-transport",
     "version":__version__,
-    "author":"The Phi Technology LLC","author_email":"info@the-phi.com",
+    "author":__author__,"author_email":"info@the-phi.com",
     "license":"MIT",
     "packages":["transport"]}
 args["keywords"]=['mongodb','couchdb','rabbitmq','file','read','write','s3','sqlite']

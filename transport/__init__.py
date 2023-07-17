@@ -20,8 +20,7 @@ The configuration for the data-store is as follows :
 	mongodb
 		provider:'mongodb',[port:27017],[host:localhost],db:<name>,doc:<_name>,context:<read|write>
 """
-__author__ = 'The Phi Technology'
-__version__= '1.8.0'
+
 import pandas 	as pd
 import numpy 	as np
 import json
@@ -38,6 +37,7 @@ if sys.version_info[0] > 2 :
 	from transport import mongo as mongo
 	from transport import sql as sql
 	from transport import etl as etl
+	from transport.version import __version__
 else:
 	from common import Reader, Writer,Console #, factory
 	import disk
@@ -47,6 +47,7 @@ else:
 	import s3
 	import sql
 	import etl
+	from version import __version__
 import psycopg2 as pg
 import mysql.connector as my
 from google.cloud import bigquery as bq
