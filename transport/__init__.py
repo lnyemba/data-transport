@@ -38,6 +38,7 @@ if sys.version_info[0] > 2 :
 	from transport import sql as sql
 	from transport import etl as etl
 	from transport.version import __version__
+	from transport import providers
 else:
 	from common import Reader, Writer,Console #, factory
 	import disk
@@ -48,37 +49,39 @@ else:
 	import sql
 	import etl
 	from version import __version__
+	import providers
 import psycopg2 as pg
 import mysql.connector as my
 from google.cloud import bigquery as bq
 import nzpy as nz   #--- netezza drivers
 import os
 
-class providers :
-	POSTGRESQL 	= 'postgresql'
-	MONGODB 	= 'mongodb'
+# class providers :
+# 	POSTGRESQL 	= 'postgresql'
+# 	MONGODB 	= 'mongodb'
 	
-	BIGQUERY	='bigquery'
-	FILE 	= 'file'
-	ETL = 'etl'
-	SQLITE = 'sqlite'
-	SQLITE3= 'sqlite'
-	REDSHIFT = 'redshift'
-	NETEZZA = 'netezza'
-	MYSQL = 'mysql'
-	RABBITMQ = 'rabbitmq'
-	MARIADB  = 'mariadb'
-	COUCHDB = 'couch'
-	CONSOLE = 'console'
-	ETL = 'etl'
-	#
-	# synonyms of the above
-	BQ 		= BIGQUERY
-	MONGO 	= MONGODB
-	FERRETDB= MONGODB
-	PG 		= POSTGRESQL
-	PSQL 	= POSTGRESQL
-	PGSQL	= POSTGRESQL
+# 	BIGQUERY	='bigquery'
+# 	FILE 	= 'file'
+# 	ETL = 'etl'
+# 	SQLITE = 'sqlite'
+# 	SQLITE3= 'sqlite'
+# 	REDSHIFT = 'redshift'
+# 	NETEZZA = 'netezza'
+# 	MYSQL = 'mysql'
+# 	RABBITMQ = 'rabbitmq'
+# 	MARIADB  = 'mariadb'
+# 	COUCHDB = 'couch'
+# 	CONSOLE = 'console'
+# 	ETL = 'etl'
+# 	#
+# 	# synonyms of the above
+# 	BQ 		= BIGQUERY
+# 	MONGO 	= MONGODB
+# 	FERRETDB= MONGODB
+# 	PG 		= POSTGRESQL
+# 	PSQL 	= POSTGRESQL
+# 	PGSQL	= POSTGRESQL
+# import providers
 
 class IEncoder (json.JSONEncoder):
 	def default (self,object):
@@ -155,6 +158,103 @@ class factory :
 
 import time
 def instance(**_args):
+	"""
+	creating an instance given the provider, we should have an idea of :class, :driver
+	:provider
+	:read|write = {connection to the database}
+	"""	
+	_provider = _args['provider']
+	_group = None
+	
+	for _id in providers.CATEGORIES :
+		if _provider in providers.CATEGORIES[_id] :
+			_group = _id
+			break
+	if _group :
+		_classPointer = _getClassInstance(_group,**_args)
+		#
+		# Let us reformat the arguments
+		if 'read' in _args or 'write' in _args :
+			_args = _args['read'] if 'read' in _args else _args['write']
+			_args['provider'] = _provider
+		if _group == 'sql' :
+			_info = _get_alchemyEngine(**_args)
+
+			_args = dict(_args,**_info)
+			_args['driver'] = providers.DRIVERS[_provider]
+			
+		else:
+			if _provider in providers.DEFAULT :
+				_default = providers.DEFAULT[_provider]
+				_defkeys = list(set(_default.keys()) - set(_args.keys()))
+				if _defkeys :
+					for key in _defkeys :
+						_args[key] = _default[key]
+			pass
+		#
+		# get default values from 
+		
+		return _classPointer(**_args)
+	#
+	# Let us determine the category of the provider that has been given
+def _get_alchemyEngine(**_args):
+	"""
+	This function returns the SQLAlchemy engine associated with parameters, This is only applicable for SQL _items
+	:_args	arguments passed to the factory {provider and other}
+	"""
+	#@TODO: Enable authentication files (private_key)
+	_username = _args['username'] if 'username' in _args else ''
+	_password = _args['password'] if 'password' in _args else ''
+	_account = _args['account'] if 'account' in _args else ''
+	_database =  _args['database']	
+	_provider = _args['provider']
+	if _username != '':
+		_account = _username + ':'+_password+'@'
+	_host = _args['host'] if 'host' in _args else ''
+	_port = _args['port'] if 'port' in _args else ''
+	if _provider in providers.DEFAULT :
+		_default = providers.DEFAULT[_provider]
+		_host = _host if _host != '' else (_default['host'] if 'host' in _default else '')
+		_port = _port if _port != '' else (_default['port'] if 'port' in _default else '')
+	if _port == '':		
+		_port = providers.DEFAULT['port'] if 'port' in providers.DEFAULT else ''
+	#
+
+	if _host != '' and _port != '' :
+		_fhost = _host+":"+str(_port) #--formatted hostname
+	else:
+		_fhost = _host
+	# Let us update the parameters we have thus far
+	#
+	
+	
+	uri = ''.join([_provider,"://",_account,_fhost,'/',_database])
+	
+	_engine =  sqlalchemy.create_engine (uri,future=True)
+	_out = {'sqlalchemy':_engine}
+	_pargs = {'host':_host,'port':_port,'username':_username,'password':_password}
+	for key in _pargs :
+		if _pargs[key] != '' :
+			_out[key] = _pargs[key]
+	return _out
+def _getClassInstance(_group,**_args):
+	"""
+	This function returns the class instance we are attempting to instanciate
+	:_group		items in providers.CATEGORIES.keys()
+	:_args		arguments passed to the factory class
+	"""		
+	if 'read' in _args or 'write' in _args :
+		_context = 'read' if 'read' in _args else _args['write']
+		_info = _args[_context]
+	else:
+		_context = _args['context'] if 'context' in _args else 'read'
+	_class = providers.READ[_group] if _context == 'read' else providers.WRITE[_group]
+	if type(_class) == dict and _args['provider'] in _class:
+		_class = _class[_args['provider']]
+
+	return _class
+
+def __instance(**_args):
 	"""
 
 	@param provider	{file,sqlite,postgresql,redshift,bigquery,netezza,mongo,couch ...}

@@ -127,6 +127,8 @@ class MongoReader(Mongo,Reader):
                 
             return pd.DataFrame(r)
         else:
+            
+            
             if 'table' in args  or 'collection' in args :
                 if 'table' in args:
                     _uid = args['table']
@@ -134,7 +136,8 @@ class MongoReader(Mongo,Reader):
                     _uid = args['collection']
                 else:
                     _uid = self.uid 
-
+            else:
+                _uid = self.uid
             collection = self.db[_uid]                
             _filter = args['filter'] if 'filter' in args else {}
             _df =  pd.DataFrame(collection.find(_filter))

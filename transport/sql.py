@@ -29,6 +29,7 @@ from multiprocessing import Lock, RLock
 import pandas as pd
 import numpy as np
 import nzpy as nz   #--- netezza drivers
+import sqlite3
 import copy
 import os
 
@@ -58,8 +59,8 @@ class SQLRW :
         # _info['host'] = 'localhost' if 'host' not in _args else _args['host']
         # _info['port'] = SQLWriter.REFERENCE[_provider]['port'] if 'port' not in _args else _args['port']
 
-        _info['host'] = _args['host']
-        _info['port'] = _args['port']
+        _info['host'] = _args['host'] if 'host' in _args else ''
+        _info['port'] = _args['port'] if 'port' in _args else ''
         
         # if 'host' in _args :
         #     _info['host'] = 'localhost' if 'host' not in _args else _args['host']
@@ -98,8 +99,12 @@ class SQLRW :
         if _handler == my :
             _info['database'] = _info['dbname']
             del _info['dbname']
-        
-        self.conn = _handler.connect(**_info)
+        if _handler == sqlite3 :
+            _info = {'path':_info['dbname'],'isolation_level':'IMMEDIATE'}
+        if _handler != sqlite3 :
+            self.conn = _handler.connect(**_info) 
+        else:
+            self.conn = _handler.connect(_info['path'],isolation_level='IMMEDIATE')
         self._engine = _args['sqlalchemy']  if 'sqlalchemy' in _args else None
     def meta(self,**_args):
         schema = []
