@@ -4,7 +4,7 @@ This is a build file for the
 from setuptools import setup, find_packages
 import os
 import sys
-from transport.version import __version__,__author__
+from version import __version__,__author__
 # __author__ = 'The Phi Technology'
 # __version__= '1.8.0'
 
