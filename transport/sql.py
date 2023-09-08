@@ -431,8 +431,8 @@ class BQReader(BigQuery,Reader) :
         
         super().__init__(**_args)    
     def apply(self,sql):
-        self.read(sql=sql)
-        pass
+        return self.read(sql=sql)
+        
     def read(self,**_args):
         SQL = None
         table = self.table if 'table' not in _args else _args['table']

@@ -8,6 +8,7 @@ from transport import mongo as mongo
 from transport import sql as sql
 from transport import etl as etl
 from transport import qlistener
+from transport import bricks
 import psycopg2 as pg
 import mysql.connector as my
 from google.cloud import bigquery as bq
@@ -45,16 +46,18 @@ AWS_S3  = 's3'
 RABBIT = RABBITMQ
 
 QLISTENER = 'qlistener'
-
+DATABRICKS= 'databricks+connector'
 DRIVERS  = {PG:pg,REDSHIFT:pg,MYSQL:my,MARIADB:my,NETEZZA:nz,SQLITE:sqlite3}
-CATEGORIES ={'sql':[NETEZZA,PG,MYSQL,REDSHIFT,SQLITE,MARIADB],'nosql':[MONGODB,COUCHDB],'cloud':[BIGQUERY],'file':[FILE],
+CATEGORIES ={'sql':[NETEZZA,PG,MYSQL,REDSHIFT,SQLITE,MARIADB],'nosql':[MONGODB,COUCHDB],'cloud':[BIGQUERY,DATABRICKS],'file':[FILE],
              'queue':[RABBIT,QLISTENER],'memory':[CONSOLE,QLISTENER],'http':[HTTP]}
 
-READ = {'sql':sql.SQLReader,'nosql':{MONGODB:mongo.MongoReader,COUCHDB:couch.CouchReader},'cloud':sql.BigQueryReader,
+READ = {'sql':sql.SQLReader,'nosql':{MONGODB:mongo.MongoReader,COUCHDB:couch.CouchReader},
+        'cloud':{BIGQUERY:sql.BigQueryReader,DATABRICKS:bricks.BricksReader},
         'file':disk.DiskReader,'queue':{RABBIT:queue.QueueReader,QLISTENER:qlistener.qListener},
         'cli':{CONSOLE:Console},'memory':{CONSOLE:Console}
         }
-WRITE = {'sql':sql.SQLWriter,'nosql':{MONGODB:mongo.MongoWriter,COUCHDB:couch.CouchWriter},'cloud':sql.BigQueryWriter,
+WRITE = {'sql':sql.SQLWriter,'nosql':{MONGODB:mongo.MongoWriter,COUCHDB:couch.CouchWriter},
+         'cloud':{BIGQUERY:sql.BigQueryWriter,DATABRICKS:bricks.BricksWriter},
          'file':disk.DiskWriter,'queue':{RABBIT:queue.QueueWriter,QLISTENER:qlistener.qListener},'cli':{CONSOLE:Console},'memory':{CONSOLE:Console}
          
         }

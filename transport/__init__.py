@@ -157,20 +157,33 @@ class factory :
 		return anObject
 
 import time
-def instance(**_args):
+def instance(**_pargs):
 	"""
 	creating an instance given the provider, we should have an idea of :class, :driver
 	:provider
 	:read|write = {connection to the database}
 	"""	
+	#
+	# @TODO: provide authentication file that will hold all the parameters, that will later on be used
+	#
+	_args = dict(_pargs,**{})
+	if 'auth_file' in _args :
+		path = _args['auth_file']
+		file = open(path)
+		_config = json.loads( file.read())
+		_args = dict(_args,**_config)
+		file.close()
+
 	_provider = _args['provider']
 	_group = None
 	
+
 	for _id in providers.CATEGORIES :
 		if _provider in providers.CATEGORIES[_id] :
 			_group = _id
 			break
 	if _group :
+		
 		_classPointer = _getClassInstance(_group,**_args)
 		#
 		# Let us reformat the arguments
