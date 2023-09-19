@@ -95,10 +95,16 @@ class MongoReader(Mongo,Reader):
         Mongo.__init__(self,**args)
     def read(self,**args):
         
-        if 'mongo' in args or 'cmd' in args:
+        if 'mongo' in args or 'cmd' in args or 'pipeline' in args:
             #
             # @TODO:
-            cmd = args['mongo'] if 'mongo' in args else args['cmd']
+            cmd = {}
+            if 'pipeline' in args :
+                cmd['pipeline']= args['pipeline']
+            if 'aggregate' not in cmd :
+                cmd['aggregate'] = self.collection
+            if 'pipeline' not in args or 'aggregate' not in cmd :
+                cmd = args['mongo'] if 'mongo' in args else args['cmd']
             if "aggregate" in cmd :
                 if "allowDiskUse" not in cmd :
                     cmd["allowDiskUse"] = True

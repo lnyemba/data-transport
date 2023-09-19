@@ -242,7 +242,6 @@ def _get_alchemyEngine(**_args):
 	
 	
 	uri = ''.join([_provider,"://",_account,_fhost,'/',_database])
-	
 	_engine =  sqlalchemy.create_engine (uri,future=True)
 	_out = {'sqlalchemy':_engine}
 	_pargs = {'host':_host,'port':_port,'username':_username,'password':_password}
