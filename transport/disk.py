@@ -95,7 +95,7 @@ class DiskWriter(Writer):
 			_delim = self._delimiter if 'delimiter' not in _args else _args['delimiter']
 			_path = self._path if 'path' not  in _args else _args['path']
 			_mode = self._mode if 'mode' not in _args else _args['mode']
-			info.to_csv(_path,index=False,sep=_delim, mode=_mode)
+			info.to_csv(_path,index=False,sep=_delim)
 			pass
 		except Exception as e:
 			#

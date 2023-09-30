@@ -99,7 +99,7 @@ class Transporter(Process):
                     # _target['write']['lock'] = True
                     pass
                 _writer = transport.factory.instance(**_target)
-                _writer.write(_data.copy(),**_args)
+                _writer.write(_data,**_args)
                 if hasattr(_writer,'close') :
                     _writer.close()
         
