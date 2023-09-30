@@ -28,7 +28,7 @@ import importlib
 import sys 
 import sqlalchemy
 if sys.version_info[0] > 2 : 
-	from transport.common import Reader, Writer,Console #, factory
+	# from transport.common import Reader, Writer,Console #, factory
 	from transport import disk
 
 	from transport import s3 as s3
@@ -97,7 +97,7 @@ class factory :
 	TYPE = {"sql":{"providers":["postgresql","mysql","neteeza","bigquery","mariadb","redshift"]}}
 	PROVIDERS = {
 		"etl":{"class":{"read":etl.instance,"write":etl.instance}},
-		"console":{"class":{"write":Console,"read":Console}},
+		# "console":{"class":{"write":Console,"read":Console}},
 		"file":{"class":{"read":disk.DiskReader,"write":disk.DiskWriter}},
 		"sqlite":{"class":{"read":disk.SQLiteReader,"write":disk.SQLiteWriter}},
         "postgresql":{"port":5432,"host":"localhost","database":None,"driver":pg,"default":{"type":"VARCHAR"},"class":{"read":sql.SQLReader,"write":sql.SQLWriter}},
@@ -124,6 +124,9 @@ class factory :
 			#
 			# Legacy code being returned
 			return factory._instance(**_args);
+			
+			
+
 		else:
 			return instance(**_args)
 	@staticmethod
@@ -175,22 +178,31 @@ def instance(**_pargs):
 		file.close()
 
 	_provider = _args['provider']
-	_group = None
+	_context = list( set(['read','write','listen']) & set(_args.keys()) )
+	if _context :
+		_context = _context[0]
+	else:
+		_context = _args['context'] if 'context' in _args else 'read'
+	# _group = None
 	
 
-	for _id in providers.CATEGORIES :
-		if _provider in providers.CATEGORIES[_id] :
-			_group = _id
-			break
-	if _group :
+	# for _id in providers.CATEGORIES :
+	# 	if _provider in providers.CATEGORIES[_id] :
+	# 		_group = _id
+	# 		break
+	# if _group :
+	
+	if _provider in providers.PROVIDERS and _context in providers.PROVIDERS[_provider]:
 		
-		_classPointer = _getClassInstance(_group,**_args)
+		# _classPointer = _getClassInstance(_group,**_args)
+		_classPointer = providers.PROVIDERS[_provider][_context]
 		#
 		# Let us reformat the arguments
-		if 'read' in _args or 'write' in _args :
-			_args = _args['read'] if 'read' in _args else _args['write']
-			_args['provider'] = _provider
-		if _group == 'sql' :
+		# if 'read' in _args or 'write' in _args :
+		# 	_args = _args['read'] if 'read' in _args else _args['write']
+		# 	_args['provider'] = _provider
+		# if _group == 'sql' :
+		if _provider in providers.CATEGORIES['sql'] :
 			_info = _get_alchemyEngine(**_args)
 
 			_args = dict(_args,**_info)
@@ -215,57 +227,68 @@ def _get_alchemyEngine(**_args):
 	This function returns the SQLAlchemy engine associated with parameters, This is only applicable for SQL _items
 	:_args	arguments passed to the factory {provider and other}
 	"""
-	#@TODO: Enable authentication files (private_key)
-	_username = _args['username'] if 'username' in _args else ''
-	_password = _args['password'] if 'password' in _args else ''
-	_account = _args['account'] if 'account' in _args else ''
-	_database =  _args['database']	
 	_provider = _args['provider']
-	if _username != '':
-		_account = _username + ':'+_password+'@'
-	_host = _args['host'] if 'host' in _args else ''
-	_port = _args['port'] if 'port' in _args else ''
-	if _provider in providers.DEFAULT :
-		_default = providers.DEFAULT[_provider]
-		_host = _host if _host != '' else (_default['host'] if 'host' in _default else '')
-		_port = _port if _port != '' else (_default['port'] if 'port' in _default else '')
-	if _port == '':		
-		_port = providers.DEFAULT['port'] if 'port' in providers.DEFAULT else ''
-	#
-
-	if _host != '' and _port != '' :
-		_fhost = _host+":"+str(_port) #--formatted hostname
+	_pargs = {}
+	if _provider == providers.SQLITE3 :
+		_path = _args['database'] if 'database' in _args else _args['path']
+		uri = ''.join([_provider,':///',_path])
+		
 	else:
-		_fhost = _host
-	# Let us update the parameters we have thus far
+		
+		#@TODO: Enable authentication files (private_key)
+		_username = _args['username'] if 'username' in _args else ''
+		_password = _args['password'] if 'password' in _args else ''
+		_account = _args['account'] if 'account' in _args else ''
+		_database =  _args['database']	if 'database' in _args else _args['path']
+		
+		if _username != '':
+			_account = _username + ':'+_password+'@'
+		_host = _args['host'] if 'host' in _args else ''
+		_port = _args['port'] if 'port' in _args else ''
+		if _provider in providers.DEFAULT :
+			_default = providers.DEFAULT[_provider]
+			_host = _host if _host != '' else (_default['host'] if 'host' in _default else '')
+			_port = _port if _port != '' else (_default['port'] if 'port' in _default else '')
+		if _port == '':		
+			_port = providers.DEFAULT['port'] if 'port' in providers.DEFAULT else ''
+		#
+
+		if _host != '' and _port != '' :
+			_fhost = _host+":"+str(_port) #--formatted hostname
+		else:
+			_fhost = _host
+		# Let us update the parameters we have thus far
 	#
 	
 	
-	uri = ''.join([_provider,"://",_account,_fhost,'/',_database])
+		uri = ''.join([_provider,"://",_account,_fhost,'/',_database])
+		_pargs = {'host':_host,'port':_port,'username':_username,'password':_password}
 	_engine =  sqlalchemy.create_engine (uri,future=True)
 	_out = {'sqlalchemy':_engine}
-	_pargs = {'host':_host,'port':_port,'username':_username,'password':_password}
+	
 	for key in _pargs :
 		if _pargs[key] != '' :
 			_out[key] = _pargs[key]
 	return _out
+@DeprecationWarning
 def _getClassInstance(_group,**_args):
 	"""
 	This function returns the class instance we are attempting to instanciate
 	:_group		items in providers.CATEGORIES.keys()
 	:_args		arguments passed to the factory class
 	"""		
-	if 'read' in _args or 'write' in _args :
-		_context = 'read' if 'read' in _args else _args['write']
-		_info = _args[_context]
-	else:
-		_context = _args['context'] if 'context' in _args else 'read'
-	_class = providers.READ[_group] if _context == 'read' else providers.WRITE[_group]
-	if type(_class) == dict and _args['provider'] in _class:
-		_class = _class[_args['provider']]
+	# if 'read' in _args or 'write' in _args :
+	# 	_context = 'read' if 'read' in _args else _args['write']
+	# 	_info = _args[_context]
+	# else:
+	# 	_context = _args['context'] if 'context' in _args else 'read'
+	# _class = providers.READ[_group] if _context == 'read' else providers.WRITE[_group]
+	# if type(_class) == dict and _args['provider'] in _class:
+	# 	_class = _class[_args['provider']]
 
-	return _class
+	# return _class
 
+@DeprecationWarning
 def __instance(**_args):
 	"""
 

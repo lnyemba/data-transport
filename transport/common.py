@@ -93,29 +93,29 @@ class ReadWriter(Reader,Writer) :
 	This class implements the read/write functions aggregated
 	"""
 	pass
-class Console(Writer):
-	lock = RLock()
-	def __init__(self,**_args):
-		self.lock = _args['lock'] if 'lock' in _args else False
-		self.info = self.write
-		self.debug = self.write
-		self.log = self.write
-		pass
-	def write (self,logs=None,**_args):
-		if self.lock :
-			Console.lock.acquire()
-		try:
-			_params = _args if logs is None and _args else  logs
-			if type(_params) == list:
-				for row in _params :
-					print (row)
-			else:
-				print (_params)
-		except Exception as e :
-			print (e)
-		finally:
-			if self.lock :
-				Console.lock.release()
+# class Console(Writer):
+# 	lock = RLock()
+# 	def __init__(self,**_args):
+# 		self.lock = _args['lock'] if 'lock' in _args else False
+# 		self.info = self.write
+# 		self.debug = self.write
+# 		self.log = self.write
+# 		pass
+# 	def write (self,logs=None,**_args):
+# 		if self.lock :
+# 			Console.lock.acquire()
+# 		try:
+# 			_params = _args if logs is None and _args else  logs
+# 			if type(_params) == list:
+# 				for row in _params :
+# 					print (row)
+# 			else:
+# 				print (_params)
+# 		except Exception as e :
+# 			print (e)
+# 		finally:
+# 			if self.lock :
+# 				Console.lock.release()
 
 
 """

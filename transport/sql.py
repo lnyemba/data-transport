@@ -291,17 +291,17 @@ class SQLWriter(SQLRW,Writer):
         """
         # inspect = False if 'inspect' not in _args else _args['inspect']
         # cast = False if 'cast' not in _args else _args['cast']
-        if not self.fields :
-            if type(info) == list :
-                _fields = info[0].keys()
-            elif type(info) == dict :
-                _fields = info.keys()
-            elif type(info) == pd.DataFrame :
-                _fields = info.columns.tolist()
-
-            # _fields = info.keys() if type(info) == dict else info[0].keys()
-            _fields = list (_fields)
-            self.init(_fields)
+        # if not self.fields :
+        #     if type(info) == list :
+        #         _fields = info[0].keys()
+        #     elif type(info) == dict :
+        #         _fields = info.keys()
+        #     elif type(info) == pd.DataFrame :
+        #         _fields = info.columns.tolist()
+            
+        #     # _fields = info.keys() if type(info) == dict else info[0].keys()
+        #     # _fields = list (_fields)
+        #     self.init(_fields)
             
         try:
             table = _args['table'] if 'table' in _args else self.table

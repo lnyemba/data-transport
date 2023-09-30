@@ -40,3 +40,8 @@ class qListener :
         _q = qListener._queue[_id]
         _q.put(_data)
         _q.join()
+class Console (qListener):
+    def __init__(self,**_args):
+        super().__init__(callback=print)
+        
+        # self.callback = print
