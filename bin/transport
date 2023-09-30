@@ -46,6 +46,7 @@ import time
 from multiprocessing import Process
 import typer
 import os
+import transport
 from transport import etl
 from transport import providers
 
@@ -88,7 +89,7 @@ def move (path,index=None):
             _config = _config[ int(index)]
             etl.instance(**_config)
         else:
-            etl.instance(_config)
+            etl.instance(config=_config)
                  
         #
         # if type(_config) == dict :
@@ -109,19 +110,30 @@ def move (path,index=None):
         #         jobs.append(thread())
         #         if _config.index(_args) == 0 :
         #             thread.join()
-            wait(jobs)
-
+            # wait(jobs)
+@app.command()
+def version():
+     print (transport.version.__version__)
 @app.command()
 def generate (path:str):
-	__doc__="""
-	
 	"""
-	_config = [{"source":{"provider":"http","url":"https://cdn.wsform.com/wp-content/uploads/2020/06/agreement.csv"},"target":{"provider":"file","path":"addresses.csv","delimiter":"csv"}}]
+	This function will generate a configuration template to give a sense of how to create one
+	"""
+	_config = [
+          {
+               "source":{"provider":"http","url":"https://raw.githubusercontent.com/codeforamerica/ohana-api/master/data/sample-csv/addresses.csv"},
+             "target":
+            [{"provider":"file","path":"addresses.csv","delimiter":"csv"},{"provider":"sqlite","database":"sample.db3","table":"addresses"}]
+            }
+            ]
 	file = open(path,'w')
 	file.write(json.dumps(_config))
 	file.close()
-	
-# if __name__ == '__main__' :
+@app.command()
+def usage():
+     print (__doc__)	
+if __name__ == '__main__' :
+     app()
 # 	#
 # 	# Load information from the file ...
 # 	if 'help' in SYS_ARGS :

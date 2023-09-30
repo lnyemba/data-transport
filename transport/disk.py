@@ -62,34 +62,25 @@ class DiskWriter(Writer):
 	"""
 	THREAD_LOCK = Lock()
 	def __init__(self,**params):
-		Writer.__init__(self)
-		self.cache['meta'] = {'cols':0,'rows':0,'delimiter':None}
-		if 'path' in params:
-			self.path = params['path']
-		else:
-			self.path = 'data-transport.log'
-		self.delimiter = params['delimiter'] if 'delimiter' in params else None
-		# if 'name' in params:
-		# 	self.name = params['name'];
-		# else:
-		# 	self.name = 'data-transport.log'
-		# if os.path.exists(self.path) == False:
-		# 	os.mkdir(self.path)
-	def meta(self):
-		return self.cache['meta']
-	def isready(self):
-		"""
-			This function determines if the class is ready for execution or not
-			i.e it determines if the preconditions of met prior execution
-		"""
-		return True
-		# p =  self.path is not None and os.path.exists(self.path)
-		# q = self.name is not None 
-		# return p and q
-	def format (self,row):
-		self.cache['meta']['cols'] += len(row) if isinstance(row,list) else len(row.keys())
-		self.cache['meta']['rows'] += 1
-		return (self.delimiter.join(row) if self.delimiter else json.dumps(row))+"\n"
+		super().__init__()
+		self._path = params['path']
+		self._delimiter = params['delimiter']
+		
+	# def meta(self):
+	# 	return self.cache['meta']
+	# def isready(self):
+	# 	"""
+	# 		This function determines if the class is ready for execution or not
+	# 		i.e it determines if the preconditions of met prior execution
+	# 	"""
+	# 	return True
+	# 	# p =  self.path is not None and os.path.exists(self.path)
+	# 	# q = self.name is not None 
+	# 	# return p and q
+	# def format (self,row):
+	# 	self.cache['meta']['cols'] += len(row) if isinstance(row,list) else len(row.keys())
+	# 	self.cache['meta']['rows'] += 1
+	# 	return (self.delimiter.join(row) if self.delimiter else json.dumps(row))+"\n"
 	def write(self,info,**_args):
 		"""
 			This function writes a record to a designated file
@@ -97,21 +88,30 @@ class DiskWriter(Writer):
 			@param	row	row to be written
 		"""
 		try:
+			
 			_mode = 'a' if 'overwrite' not in _args else 'w'
 			DiskWriter.THREAD_LOCK.acquire()
-			f = open(self.path,_mode)
-			if self.delimiter :
-				if type(info) == list :
-					for row in info :
-						f.write(self.format(row))
-				else:
-					f.write(self.format(info))
-			else:
-				if not type(info) == str :
-					f.write(json.dumps(info)+"\n")
-				else:
-					f.write(info)
-			f.close()
+			# # _path = _args['path'] if 'path' in _args else self.path
+			# # _delim= _args['delimiter'] if 'delimiter' in _args else self._delimiter
+			# # info.to_csv(_path,sep=_delim)
+			# info.to_csv(self.path)
+			# f = open(self.path,_mode)
+			# if self.delimiter :
+			# 	if type(info) == list :
+			# 		for row in info :
+			# 			f.write(self.format(row))
+			# 	else:
+			# 		f.write(self.format(info))
+			# else:
+			# 	if not type(info) == str :
+			# 		f.write(json.dumps(info)+"\n")
+			# 	else:
+			# 		f.write(info)
+			# f.close()
+			_delim = self._delimiter if 'delimiter' not in _args else _args['delimiter']
+			_path = self.path if 'path' not  in _args else _args['path']
+			info.to_csv(_path,index=False,sep=_delim)
+			pass
 		except Exception as e:
 			#
 			# Not sure what should be done here ...
@@ -220,16 +220,19 @@ class SQLiteWriter(SQLite,DiskWriter) :
 		#
 		# If the table doesn't exist we should create it
 		#
-	def write(self,info):
+	def write(self,info,**_args):
 		"""
 		"""
 		
 		if not self.fields :
+			if type(info) == pd.DataFrame :
+				_columns = list(info.columns) 
 			self.init(list(info.keys()))
 		
 		if type(info) == dict :
 			info = [info]
 		elif type(info) == pd.DataFrame :
+			info = info.fillna('')
 			info = info.to_dict(orient='records')
 		
 		SQLiteWriter.LOCK.acquire()

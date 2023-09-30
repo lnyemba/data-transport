@@ -70,7 +70,7 @@ class Transporter(Process):
         # self._onerror = _args['onError']
         self._source = _args['source']
         self._target = _args['target']
-
+        
         #
         # Let's insure we can support multiple targets
         self._target = [self._target] if type(self._target) != list else self._target
@@ -90,16 +90,18 @@ class Transporter(Process):
         This function will write a data-frame to a designated data-store, The function is built around a delegation design pattern
         :data   data-frame or object to be written
         """
-        for _target in self._target :
-            if 'write' not in _target :
-                _target['context'] = 'write'
-                _target['lock'] = True
-            else:
-                _target['write']['lock'] = True
-            _writer = transport.factory.instance(**_target)
-            _writer.write(_data,**_args)
-            if hasattr(_writer,'close') :
-                _writer.close()
+        if _data.shape[0] > 0 :
+            for _target in self._target :
+                if 'write' not in _target :
+                    _target['context'] = 'write'
+                    # _target['lock'] = True
+                else:
+                    # _target['write']['lock'] = True
+                    pass
+                _writer = transport.factory.instance(**_target)
+                _writer.write(_data.copy(),**_args)
+                if hasattr(_writer,'close') :
+                    _writer.close()
         
     def write(self,_df,**_args):
         """
@@ -109,12 +111,12 @@ class Transporter(Process):
         # _df = self.read()
         _segments = np.array_split(np.range(_df.shape[0]),SEGMENT_COUNT) if _df.shape[0] > MAX_ROWS else np.array( [np.arange(_df.shape[0])])
         # _index = 0
-       
+        
         
         for _indexes in _segments :
             _fwd_args = {} if not _args else _args
             
-            self._delegate_write(_df.iloc[_indexes],**_fwd_args)
+            self._delegate_write(_df.iloc[_indexes])
             #
             # @TODO: Perhaps consider writing up each segment in a thread/process (speeds things up?)
             pass
