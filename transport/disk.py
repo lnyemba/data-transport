@@ -64,7 +64,7 @@ class DiskWriter(Writer):
 	def __init__(self,**params):
 		super().__init__()
 		self._path = params['path']
-		self._delimiter = params['delimiter']
+		self._delimiter = params['delimiter'] if 'delimiter' in params else None
 		self._mode = 'w' if 'mode' not in params else params['mode']
 	# def meta(self):
 	# 	return self.cache['meta']

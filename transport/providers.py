@@ -10,6 +10,7 @@ from transport import etl as etl
 from transport import qlistener
 from transport import bricks
 from transport import session
+from transport import nextcloud
 import psycopg2 as pg
 import mysql.connector as my
 from google.cloud import bigquery as bq
@@ -34,7 +35,7 @@ MARIADB  = 'mariadb'
 COUCHDB = 'couch'
 CONSOLE = 'console'
 ETL = 'etl'
-
+NEXTCLOUD = 'nextcloud'
 
 #
 # synonyms of the above
@@ -49,18 +50,19 @@ AWS_S3  = 's3'
 RABBIT = RABBITMQ
 
 QLISTENER = 'qlistener'
+QUEUE = QLISTENER
 DATABRICKS= 'databricks+connector'
 DRIVERS  = {PG:pg,REDSHIFT:pg,MYSQL:my,MARIADB:my,NETEZZA:nz,SQLITE:sqlite3}
-CATEGORIES ={'sql':[NETEZZA,PG,MYSQL,REDSHIFT,SQLITE,MARIADB],'nosql':[MONGODB,COUCHDB],'cloud':[BIGQUERY,DATABRICKS],'file':[FILE],
-             'queue':[RABBIT,QLISTENER],'memory':[CONSOLE,QLISTENER],'http':[HTTP]}
+CATEGORIES ={'sql':[NETEZZA,PG,MYSQL,REDSHIFT,SQLITE,MARIADB],'nosql':[MONGODB,COUCHDB],'cloud':[NEXTCLOUD,S3,BIGQUERY,DATABRICKS],'file':[FILE],
+             'queue':[RABBIT,QLISTENER],'memory':[CONSOLE,QUEUE],'http':[HTTP]}
 
 READ = {'sql':sql.SQLReader,'nosql':{MONGODB:mongo.MongoReader,COUCHDB:couch.CouchReader},
-        'cloud':{BIGQUERY:sql.BigQueryReader,DATABRICKS:bricks.BricksReader},
+        'cloud':{BIGQUERY:sql.BigQueryReader,DATABRICKS:bricks.BricksReader,NEXTCLOUD:nextcloud.NextcloudReader},
         'file':disk.DiskReader,'queue':{RABBIT:queue.QueueReader,QLISTENER:qlistener.qListener},
         # 'cli':{CONSOLE:Console},'memory':{CONSOLE:Console},'http':session.HttpReader
         }
 WRITE = {'sql':sql.SQLWriter,'nosql':{MONGODB:mongo.MongoWriter,COUCHDB:couch.CouchWriter},
-         'cloud':{BIGQUERY:sql.BigQueryWriter,DATABRICKS:bricks.BricksWriter},
+         'cloud':{BIGQUERY:sql.BigQueryWriter,DATABRICKS:bricks.BricksWriter,NEXTCLOUD:nextcloud.NextcloudWriter},
          'file':disk.DiskWriter,'queue':{RABBIT:queue.QueueWriter,QLISTENER:qlistener.qListener},
         #  'cli':{CONSOLE:Console},
         #  'memory':{CONSOLE:Console}, 'http':session.HttpReader
@@ -78,12 +80,16 @@ PROVIDERS = {
     
     MYSQL:{'read':sql.SQLReader,'write':sql.SQLWriter,'driver':my,'default':{'host':'localhost','port':3306}},
     MARIADB:{'read':sql.SQLReader,'write':sql.SQLWriter,'driver':my,'default':{'host':'localhost','port':3306}},
+    
     S3:{'read':s3.s3Reader,'write':s3.s3Writer},
     BIGQUERY:{'read':sql.BigQueryReader,'write':sql.BigQueryWriter},
+    DATABRICKS:{'read':bricks.BricksReader,'write':bricks.BricksWriter},
+    NEXTCLOUD:{'read':nextcloud.NextcloudReader,'write':nextcloud.NextcloudWriter},
+
     QLISTENER:{'read':qlistener.qListener,'write':qlistener.qListener,'default':{'host':'localhost','port':5672}},
     CONSOLE:{'read':qlistener.Console,"write":qlistener.Console},
     HTTP:{'read':session.HttpReader,'write':session.HttpWriter},
-    DATABRICKS:{'read':bricks.BricksReader,'write':bricks.BricksWriter},
+    
     MONGODB:{'read':mongo.MongoReader,'write':mongo.MongoWriter,'default':{'port':27017,'host':'localhost'}},
     COUCHDB:{'read':couch.CouchReader,'writer':couch.CouchWriter,'default':{'host':'localhost','port':5984}},
     ETL :{'read':etl.Transporter,'write':etl.Transporter}
