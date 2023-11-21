@@ -45,9 +45,13 @@ class NextcloudReader(Nextcloud,Reader):
             _info = self._handler.file_info(_uri)
             _content = self._handler.get_file_contents(_uri).decode('utf8')
             if _info.get_content_type() == 'text/csv' :
+                #
+                # @TODO: enable handling of csv, xls, parquet, pickles
                 _file = StringIO(_content)
                 return pd.read_csv(_file)
             else:
+                #
+                # if it is neither a structured document like csv, we will return the content as is
                 return _content
         return None     
 class NextcloudWriter (Nextcloud,Writer):
