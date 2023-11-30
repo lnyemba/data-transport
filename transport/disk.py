@@ -64,7 +64,7 @@ class DiskWriter(Writer):
 	def __init__(self,**params):
 		super().__init__()
 		self._path = params['path']
-		self._delimiter = params['delimiter']
+		self._delimiter = params['delimiter'] if 'delimiter' in params else None
 		self._mode = 'w' if 'mode' not in params else params['mode']
 	# def meta(self):
 	# 	return self.cache['meta']
@@ -209,17 +209,20 @@ class SQLiteWriter(SQLite,DiskWriter) :
 		"""
 		"""
 		
-		if not self.fields :
-			if type(info) == pd.DataFrame :
-				_columns = list(info.columns) 
-			self.init(list(info.keys()))
+		#if not self.fields :
+		#	#if type(info) == pd.DataFrame :
+		#	#	_columns = list(info.columns) 
+        #   #self.init(list(info.keys()))
 		
 		if type(info) == dict :
 			info = [info]
 		elif type(info) == pd.DataFrame :
 			info = info.fillna('')
 			info = info.to_dict(orient='records')
-		
+        if not self.fields :
+            _rec = info[0]
+            self.init(list(_rec.keys()))
+
 		SQLiteWriter.LOCK.acquire()
 		try:
 			
