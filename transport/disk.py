@@ -219,9 +219,10 @@ class SQLiteWriter(SQLite,DiskWriter) :
 		elif type(info) == pd.DataFrame :
 			info = info.fillna('')
 			info = info.to_dict(orient='records')
-        if not self.fields :
-            _rec = info[0]
-            self.init(list(_rec.keys()))
+        
+		if not self.fields :
+			_rec = info[0]
+			self.init(list(_rec.keys()))
 
 		SQLiteWriter.LOCK.acquire()
 		try:
