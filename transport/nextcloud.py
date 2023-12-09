@@ -3,7 +3,7 @@ We are implementing transport to and from nextcloud (just like s3)
 """
 import os
 import sys
-from transport.common import Reader,Writer
+from transport.common import Reader,Writer, IEncoder
 import pandas as pd
 from io import StringIO
 import json
@@ -73,7 +73,7 @@ class NextcloudWriter (Nextcloud,Writer):
             _data.to_csv(f,index=False)
             _content = f.getvalue()
         elif type(_data) == dict :
-            _content = json.dumps(_data)
+            _content = json.dumps(_data,cls=IEncoder)
         else:
             _content = str(_data)
         self._handler.put_file_contents(_uri,_content)

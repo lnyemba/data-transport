@@ -25,7 +25,7 @@ from multiprocessing import RLock
 import queue
 # import couch
 # import mongo
-
+from datetime import datetime
 
 class IO:
 	def init(self,**args):
@@ -39,6 +39,19 @@ class IO:
 				continue
 			value = args[field]
 			setattr(self,field,value)
+class IEncoder (json.JSONEncoder):
+	def default (self,object):
+		if type(object) == np.integer :
+			return int(object)
+		elif type(object) == np.floating:
+			return float(object)
+		elif type(object) == np.ndarray :
+			return object.tolist()
+		elif type(object) == datetime :
+			return object.isoformat()
+		else:
+			return super(IEncoder,self).default(object)
+				
 class Reader (IO):
 	"""
 	This class is an abstraction of a read functionalities of a data store

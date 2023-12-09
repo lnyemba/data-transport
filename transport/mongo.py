@@ -15,7 +15,7 @@ import gridfs
 # from transport import Reader,Writer
 import sys
 if sys.version_info[0] > 2 :
-	from transport.common import Reader, Writer
+	from transport.common import Reader, Writer, IEncoder
 else:
 	from common import Reader, Writer
 import json
@@ -102,7 +102,7 @@ class MongoReader(Mongo,Reader):
             if 'pipeline' in args :
                 cmd['pipeline']= args['pipeline']
             if 'aggregate' not in cmd :
-                cmd['aggregate'] = self.collection
+                cmd['aggregate'] = self.uid
             if 'pipeline' not in args or 'aggregate' not in cmd :
                 cmd = args['mongo'] if 'mongo' in args else args['cmd']
             if "aggregate" in cmd :
@@ -182,7 +182,7 @@ class MongoWriter(Mongo,Writer):
         for row in rows :
             if type(row['_id']) == ObjectId :
                 row['_id'] = str(row['_id'])
-        stream = Binary(json.dumps(collection).encode())
+        stream = Binary(json.dumps(collection,cls=IEncoder).encode())
         collection.delete_many({})
         now = "-".join([str(datetime.now().year()),str(datetime.now().month), str(datetime.now().day)])
         name = ".".join([self.uid,'archive',now])+".json"

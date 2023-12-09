@@ -12,6 +12,8 @@ import json
 import sqlite3
 import pandas as pd
 from multiprocessing import Lock
+from transport.common import Reader, Writer, IEncoder
+
 class DiskReader(Reader) :
 	"""
 	This class is designed to read data from disk (location on hard drive)
@@ -221,6 +223,8 @@ class SQLiteWriter(SQLite,DiskWriter) :
 			info = info.to_dict(orient='records')
         
 		if not self.fields :
+			
+			
 			_rec = info[0]
 			self.init(list(_rec.keys()))
 
@@ -231,7 +235,8 @@ class SQLiteWriter(SQLite,DiskWriter) :
 			sql = " " .join(["INSERT INTO ",self.table,"(", ",".join(self.fields) ,")", "values(:values)"])
 			for row in info :
 				stream =["".join(["",value,""]) if type(value) == str else value for value in row.values()]
-				stream = json.dumps(stream).replace("[","").replace("]","")
+				stream = json.dumps(stream,cls=IEncoder)
+				stream = stream.replace("[","").replace("]","")
 				
 				
 				self.conn.execute(sql.replace(":values",stream) )

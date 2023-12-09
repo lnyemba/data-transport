@@ -27,6 +27,7 @@ import json
 import importlib 
 import sys 
 import sqlalchemy
+from datetime import datetime
 if sys.version_info[0] > 2 : 
 	# from transport.common import Reader, Writer,Console #, factory
 	from transport import disk
@@ -83,16 +84,19 @@ import os
 # 	PGSQL	= POSTGRESQL
 # import providers
 
-class IEncoder (json.JSONEncoder):
-	def default (self,object):
-		if type(object) == np.integer :
-			return int(object)
-		elif type(object) == np.floating:
-			return float(object)
-		elif type(object) == np.ndarray :
-			return object.tolist()
-		else:
-			return super(IEncoder,self).default(object)
+# class IEncoder (json.JSONEncoder):
+def IEncoder (self,object):
+	if type(object) == np.integer :
+		return int(object)
+	elif type(object) == np.floating:
+		return float(object)
+	elif type(object) == np.ndarray :
+		return object.tolist()
+	elif type(object) == datetime :
+		return o.isoformat()
+	else:
+		return super(IEncoder,self).default(object)
+		
 class factory :
 	TYPE = {"sql":{"providers":["postgresql","mysql","neteeza","bigquery","mariadb","redshift"]}}
 	PROVIDERS = {
