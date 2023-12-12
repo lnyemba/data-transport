@@ -223,8 +223,6 @@ class SQLiteWriter(SQLite,DiskWriter) :
 			info = info.to_dict(orient='records')
         
 		if not self.fields :
-			
-			
 			_rec = info[0]
 			self.init(list(_rec.keys()))
 
