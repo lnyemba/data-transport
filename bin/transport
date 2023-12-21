@@ -14,19 +14,27 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 
 Usage :
-	transport --config <path-to-file.json> --procs <number-procs>
-@TODO: Create tables if they don't exist for relational databases
-example of configuration :
+	transport help -- will print this page
 
-1. Move data from a folder to a data-store
-	transport [--folder <path> ] --config <config.json>	 #-- assuming the configuration doesn't have folder 
-	transport --folder <path> --provider <postgresql|mongo|sqlite> --<database|db> <name> --table|doc <document_name>
-In this case the configuration should look like :
-	{folder:..., target:{}}
-2. Move data from one source to another
-	transport --config <file.json>
-	{source:{..},target:{..}} or [{source:{..},target:{..}},{source:{..},target:{..}}]
-	
+    transport move <path> [index]
+        <path>  path to the configuration file
+        <index> optional index within the configuration file
+
+e.g: configuration file (JSON formatted)
+    - single source to a single target
+
+    {"source":{"provider":"http","url":"https://cdn.wsform.com/wp-content/uploads/2020/06/agreement.csv"}
+        "target":{"provider":"sqlite3","path":"transport-demo.sqlite","table":"agreement"}
+    }
+
+    - single source to multiple targets
+    {
+        "source":{"provider":"http","url":"https://cdn.wsform.com/wp-content/uploads/2020/06/agreement.csv"},
+        "target":[
+            {"provider":"sqlite3","path":"transport-demo.sqlite","table":"agreement},
+            {"provider":"mongodb","db":"transport-demo","collection":"agreement"}
+        ]
+    }
 
 """
 import pandas as pd
@@ -36,51 +44,123 @@ import sys
 import transport
 import time
 from multiprocessing import Process
-SYS_ARGS = {}
-if len(sys.argv) > 1:
+import typer
+import os
+import transport
+from transport import etl
+from transport import providers
+
+# SYS_ARGS = {}
+# if len(sys.argv) > 1:
     
-    N = len(sys.argv)
-    for i in range(1,N):
-        value = None
-        if sys.argv[i].startswith('--'):
-            key = sys.argv[i][2:] #.replace('-','')
-            SYS_ARGS[key] = 1			
-            if i + 1 < N:
-                value = sys.argv[i + 1] = sys.argv[i+1].strip()
-            if key and value and not value.startswith('--'):
-                SYS_ARGS[key] = value
+#     N = len(sys.argv)
+#     for i in range(1,N):
+#         value = None
+#         if sys.argv[i].startswith('--'):
+#             key = sys.argv[i][2:] #.replace('-','')
+#             SYS_ARGS[key] = 1			
+#             if i + 1 < N:
+#                 value = sys.argv[i + 1] = sys.argv[i+1].strip()
+#             if key and value and not value.startswith('--'):
+#                 SYS_ARGS[key] = value
                 
         
-        i += 2
+#         i += 2
 
+app = typer.Typer()
+
+# @app.command()
+def help() :     
+	print (__doc__)
+def wait(jobs):
+    while jobs :
+        jobs = [thread for thread in jobs if thread.is_alive()]
+        time.sleep(1)
+
+@app.command()
+def move (path,index=None):
+
+    _proxy = lambda _object: _object.write(_object.read())
+    if os.path.exists(path):
+        file = open(path)
+        _config = json.loads (file.read() )
+        file.close()
+        if index :
+            _config = _config[ int(index)]
+            etl.instance(**_config)
+        else:
+            etl.instance(config=_config)
+                 
+        #
+        # if type(_config) == dict :
+        #     _object = transport.etl.instance(**_config) 
+        #     _proxy(_object)
+        # else:
+        #     #
+        #     # here we are dealing with a list of objects (long ass etl job)
+        #     jobs = []
+        #     failed = []
+        #     for _args in _config :
+        #         if index and _config.index(_args) != index :
+        #             continue
+
+        #         _object=transport.etl.instance(**_args)
+        #         thread = Process(target=_proxy,args=(_object,))
+        #         thread.start()
+        #         jobs.append(thread())
+        #         if _config.index(_args) == 0 :
+        #             thread.join()
+            # wait(jobs)
+@app.command()
+def version():
+     print (transport.version.__version__)
+@app.command()
+def generate (path:str):
+	"""
+	This function will generate a configuration template to give a sense of how to create one
+	"""
+	_config = [
+          {
+               "source":{"provider":"http","url":"https://raw.githubusercontent.com/codeforamerica/ohana-api/master/data/sample-csv/addresses.csv"},
+             "target":
+            [{"provider":"file","path":"addresses.csv","delimiter":"csv"},{"provider":"sqlite","database":"sample.db3","table":"addresses"}]
+            }
+            ]
+	file = open(path,'w')
+	file.write(json.dumps(_config))
+	file.close()
+@app.command()
+def usage():
+     print (__doc__)	
 if __name__ == '__main__' :
-	#
-	# Load information from the file ...
-	if 'help' in SYS_ARGS :
-		print (__doc__)
-	else:
-		try:
-			_info = json.loads(open(SYS_ARGS['config']).read())
-			if 'index' in SYS_ARGS :
-				_index = int(SYS_ARGS['index'])
-				_info = [_item for _item in _info if _info.index(_item) == _index]
-				pass
-			elif 'id' in SYS_ARGS :
-				_info = [_item for _item in _info if 'id' in _item and _item['id'] == SYS_ARGS['id']]
+     app()
+# 	#
+# 	# Load information from the file ...
+# 	if 'help' in SYS_ARGS :
+# 		print (__doc__)
+# 	else:
+# 		try:
+# 			_info = json.loads(open(SYS_ARGS['config']).read())
+# 			if 'index' in SYS_ARGS :
+# 				_index = int(SYS_ARGS['index'])
+# 				_info = [_item for _item in _info if _info.index(_item) == _index]
+# 				pass
+# 			elif 'id' in SYS_ARGS :
+# 				_info = [_item for _item in _info if 'id' in _item and _item['id'] == SYS_ARGS['id']]
 			
-			procs = 1 if 'procs' not in SYS_ARGS else int(SYS_ARGS['procs'])
-			jobs = transport.factory.instance(provider='etl',info=_info,procs=procs)
-			print ([len(jobs),' Jobs are running'])
-			N = len(jobs)
-			while jobs :
-				x = len(jobs)
-				jobs = [_job for _job in jobs if _job.is_alive()]
-				if x != len(jobs) :
-					print ([len(jobs),'... jobs still running'])
-				time.sleep(1)
-			print ([N,' Finished running'])
-		except Exception as e:
+# 			procs = 1 if 'procs' not in SYS_ARGS else int(SYS_ARGS['procs'])
+# 			jobs = transport.factory.instance(provider='etl',info=_info,procs=procs)
+# 			print ([len(jobs),' Jobs are running'])
+# 			N = len(jobs)
+# 			while jobs :
+# 				x = len(jobs)
+# 				jobs = [_job for _job in jobs if _job.is_alive()]
+# 				if x != len(jobs) :
+# 					print ([len(jobs),'... jobs still running'])
+# 				time.sleep(1)
+# 			print ([N,' Finished running'])
+# 		except Exception as e:
 			
-			print (e)
+# 			print (e)
 			
 	

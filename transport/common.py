@@ -25,7 +25,7 @@ from multiprocessing import RLock
 import queue
 # import couch
 # import mongo
-
+from datetime import datetime
 
 class IO:
 	def init(self,**args):
@@ -39,6 +39,19 @@ class IO:
 				continue
 			value = args[field]
 			setattr(self,field,value)
+class IEncoder (json.JSONEncoder):
+	def default (self,object):
+		if type(object) == np.integer :
+			return int(object)
+		elif type(object) == np.floating:
+			return float(object)
+		elif type(object) == np.ndarray :
+			return object.tolist()
+		elif type(object) == datetime :
+			return object.isoformat()
+		else:
+			return super(IEncoder,self).default(object)
+				
 class Reader (IO):
 	"""
 	This class is an abstraction of a read functionalities of a data store
@@ -93,29 +106,29 @@ class ReadWriter(Reader,Writer) :
 	This class implements the read/write functions aggregated
 	"""
 	pass
-class Console(Writer):
-	lock = RLock()
-	def __init__(self,**_args):
-		self.lock = _args['lock'] if 'lock' in _args else False
-		self.info = self.write
-		self.debug = self.write
-		self.log = self.write
-		pass
-	def write (self,logs=None,**_args):
-		if self.lock :
-			Console.lock.acquire()
-		try:
-			_params = _args if logs is None and _args else  logs
-			if type(_params) == list:
-				for row in _params :
-					print (row)
-			else:
-				print (_params)
-		except Exception as e :
-			print (e)
-		finally:
-			if self.lock :
-				Console.lock.release()
+# class Console(Writer):
+# 	lock = RLock()
+# 	def __init__(self,**_args):
+# 		self.lock = _args['lock'] if 'lock' in _args else False
+# 		self.info = self.write
+# 		self.debug = self.write
+# 		self.log = self.write
+# 		pass
+# 	def write (self,logs=None,**_args):
+# 		if self.lock :
+# 			Console.lock.acquire()
+# 		try:
+# 			_params = _args if logs is None and _args else  logs
+# 			if type(_params) == list:
+# 				for row in _params :
+# 					print (row)
+# 			else:
+# 				print (_params)
+# 		except Exception as e :
+# 			print (e)
+# 		finally:
+# 			if self.lock :
+# 				Console.lock.release()
 
 
 """
