@@ -32,7 +32,7 @@ import nzpy as nz   #--- netezza drivers
 import sqlite3
 import copy
 import os
-
+import time
 
 class SQLRW :
     lock = RLock()
@@ -357,7 +357,7 @@ class SQLWriter(SQLRW,Writer):
                         #
                         # Writing with schema information ...
                         rows = _info.iloc[i].to_sql(self.table,self._engine,schema=self.schema,if_exists='append',index=False)
-                    
+                    time.sleep(1)
                 else:
                     _fields = ",".join(self.fields)
                     _sql = _sql.replace(":fields",_fields)
@@ -495,10 +495,11 @@ class BQWriter(BigQuery,Writer):
             # _df.to_gbq(**self.mode) #if_exists='append',destination_table=partial,credentials=credentials,chunksize=90000)	
             #
             # Let us adjust the chunking here 
-            self._chunkks = 10 if _df.shape[0] > SQLRW.MAX_CHUNK and self._chunks == 1 else self._chunks 
+            self._chunks = 10 if _df.shape[0] > SQLRW.MAX_CHUNK and self._chunks == 1 else self._chunks 
             _indexes = np.array_split(np.arange(_df.shape[0]),self._chunks) 
             for i in _indexes :
                 _df.iloc[i].to_gbq(**self.mode)
+                time.sleep(1)
         pass
 #
 # Aliasing the big query classes allowing it to be backward compatible
