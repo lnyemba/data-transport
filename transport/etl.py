@@ -109,7 +109,7 @@ class Transporter(Process):
         SEGMENT_COUNT = 6
         MAX_ROWS = 1000000
         # _df = self.read()
-        _segments = np.array_split(np.range(_df.shape[0]),SEGMENT_COUNT) if _df.shape[0] > MAX_ROWS else np.array( [np.arange(_df.shape[0])])
+        _segments = np.array_split(np.arange(_df.shape[0]),SEGMENT_COUNT) if _df.shape[0] > MAX_ROWS else np.array( [np.arange(_df.shape[0])])
         # _index = 0
         
         
