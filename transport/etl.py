@@ -117,6 +117,7 @@ class Transporter(Process):
             _fwd_args = {} if not _args else _args
             
             self._delegate_write(_df.iloc[_indexes],**_fwd_args)
+            time.sleep(1)
             #
             # @TODO: Perhaps consider writing up each segment in a thread/process (speeds things up?)
             pass
