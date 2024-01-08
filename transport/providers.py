@@ -35,6 +35,7 @@ MARIADB  = 'mariadb'
 COUCHDB = 'couch'
 CONSOLE = 'console'
 ETL = 'etl'
+TRANSPORT = ETL
 NEXTCLOUD = 'nextcloud'
 
 #
