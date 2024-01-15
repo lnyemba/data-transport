@@ -15,12 +15,26 @@ import gridfs
 # from transport import Reader,Writer
 import sys
 if sys.version_info[0] > 2 :
-	from transport.common import Reader, Writer, IEncoder
+	from transport.common import Reader, Writer
 else:
 	from common import Reader, Writer
 import json
 import re
 from multiprocessing import Lock, RLock
+
+def IEncoder (self,object):
+	if type(object) == np.integer :
+		return int(object)
+	elif type(object) == np.floating:
+		return float(object)
+	elif type(object) == np.ndarray :
+		return object.tolist()
+	elif type(object) == datetime :
+		return o.isoformat()
+	else:
+		return super(IEncoder,self).default(object)
+		
+        
 class Mongo :
     lock = RLock()
     """

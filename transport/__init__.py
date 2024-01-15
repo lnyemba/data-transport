@@ -21,8 +21,8 @@ The configuration for the data-store is as follows :
 		provider:'mongodb',[port:27017],[host:localhost],db:<name>,doc:<_name>,context:<read|write>
 """
 
-import pandas 	as pd
-import numpy 	as np
+# import pandas 	as pd
+# import numpy 	as np
 import json
 import importlib 
 import sys 
@@ -38,7 +38,8 @@ if sys.version_info[0] > 2 :
 	from transport import mongo as mongo
 	from transport import sql as sql
 	from transport import etl as etl
-	from transport.version import __version__
+	# from transport.version import __version__
+	from info import __version__,__author__
 	from transport import providers
 else:
 	from common import Reader, Writer,Console #, factory
@@ -51,10 +52,10 @@ else:
 	import etl
 	from version import __version__
 	import providers
-import psycopg2 as pg
-import mysql.connector as my
-from google.cloud import bigquery as bq
-import nzpy as nz   #--- netezza drivers
+# import psycopg2 as pg
+# import mysql.connector as my
+# from google.cloud import bigquery as bq
+# import nzpy as nz   #--- netezza drivers
 import os
 
 # class providers :
@@ -85,42 +86,42 @@ import os
 # import providers
 
 # class IEncoder (json.JSONEncoder):
-def IEncoder (self,object):
-	if type(object) == np.integer :
-		return int(object)
-	elif type(object) == np.floating:
-		return float(object)
-	elif type(object) == np.ndarray :
-		return object.tolist()
-	elif type(object) == datetime :
-		return o.isoformat()
-	else:
-		return super(IEncoder,self).default(object)
+# def IEncoder (self,object):
+# 	if type(object) == np.integer :
+# 		return int(object)
+# 	elif type(object) == np.floating:
+# 		return float(object)
+# 	elif type(object) == np.ndarray :
+# 		return object.tolist()
+# 	elif type(object) == datetime :
+# 		return o.isoformat()
+# 	else:
+# 		return super(IEncoder,self).default(object)
 		
 class factory :
-	TYPE = {"sql":{"providers":["postgresql","mysql","neteeza","bigquery","mariadb","redshift"]}}
-	PROVIDERS = {
-		"etl":{"class":{"read":etl.instance,"write":etl.instance}},
-		# "console":{"class":{"write":Console,"read":Console}},
-		"file":{"class":{"read":disk.DiskReader,"write":disk.DiskWriter}},
-		"sqlite":{"class":{"read":disk.SQLiteReader,"write":disk.SQLiteWriter}},
-        "postgresql":{"port":5432,"host":"localhost","database":None,"driver":pg,"default":{"type":"VARCHAR"},"class":{"read":sql.SQLReader,"write":sql.SQLWriter}},
-        "redshift":{"port":5432,"host":"localhost","database":None,"driver":pg,"default":{"type":"VARCHAR"},"class":{"read":sql.SQLReader,"write":sql.SQLWriter}},
-        "bigquery":{"class":{"read":sql.BQReader,"write":sql.BQWriter}},
-        "mysql":{"port":3306,"host":"localhost","default":{"type":"VARCHAR(256)"},"driver":my,"class":{"read":sql.SQLReader,"write":sql.SQLWriter}},
-        "mariadb":{"port":3306,"host":"localhost","default":{"type":"VARCHAR(256)"},"driver":my,"class":{"read":sql.SQLReader,"write":sql.SQLWriter}},
-		"mongo":{"port":27017,"host":"localhost","class":{"read":mongo.MongoReader,"write":mongo.MongoWriter}},		
-		"couch":{"port":5984,"host":"localhost","class":{"read":couch.CouchReader,"write":couch.CouchWriter}},		
-        "netezza":{"port":5480,"driver":nz,"default":{"type":"VARCHAR(256)"},"class":{"read":sql.SQLReader,"write":sql.SQLWriter}},
-		"rabbitmq":{"port":5672,"host":"localhost","class":{"read":queue.QueueReader,"write":queue.QueueWriter,"listen":queue.QueueListener,"listener":queue.QueueListener},"default":{"type":"application/json"}}}
-	#
-	# creating synonyms
-	PROVIDERS['mongodb'] = PROVIDERS['mongo']
-	PROVIDERS['couchdb'] = PROVIDERS['couch']
-	PROVIDERS['bq'] 	 = PROVIDERS['bigquery']
-	PROVIDERS['sqlite3'] = PROVIDERS['sqlite']
-	PROVIDERS['rabbit'] = PROVIDERS['rabbitmq']
-	PROVIDERS['rabbitmq-server'] = PROVIDERS['rabbitmq']
+	# TYPE = {"sql":{"providers":["postgresql","mysql","neteeza","bigquery","mariadb","redshift"]}}
+	# PROVIDERS = {
+	# 	"etl":{"class":{"read":etl.instance,"write":etl.instance}},
+	# 	# "console":{"class":{"write":Console,"read":Console}},
+	# 	"file":{"class":{"read":disk.DiskReader,"write":disk.DiskWriter}},
+	# 	"sqlite":{"class":{"read":disk.SQLiteReader,"write":disk.SQLiteWriter}},
+    #     "postgresql":{"port":5432,"host":"localhost","database":None,"driver":pg,"default":{"type":"VARCHAR"},"class":{"read":sql.SQLReader,"write":sql.SQLWriter}},
+    #     "redshift":{"port":5432,"host":"localhost","database":None,"driver":pg,"default":{"type":"VARCHAR"},"class":{"read":sql.SQLReader,"write":sql.SQLWriter}},
+    #     "bigquery":{"class":{"read":sql.BQReader,"write":sql.BQWriter}},
+    #     "mysql":{"port":3306,"host":"localhost","default":{"type":"VARCHAR(256)"},"driver":my,"class":{"read":sql.SQLReader,"write":sql.SQLWriter}},
+    #     "mariadb":{"port":3306,"host":"localhost","default":{"type":"VARCHAR(256)"},"driver":my,"class":{"read":sql.SQLReader,"write":sql.SQLWriter}},
+	# 	"mongo":{"port":27017,"host":"localhost","class":{"read":mongo.MongoReader,"write":mongo.MongoWriter}},		
+	# 	"couch":{"port":5984,"host":"localhost","class":{"read":couch.CouchReader,"write":couch.CouchWriter}},		
+    #     "netezza":{"port":5480,"driver":nz,"default":{"type":"VARCHAR(256)"},"class":{"read":sql.SQLReader,"write":sql.SQLWriter}},
+	# 	"rabbitmq":{"port":5672,"host":"localhost","class":{"read":queue.QueueReader,"write":queue.QueueWriter,"listen":queue.QueueListener,"listener":queue.QueueListener},"default":{"type":"application/json"}}}
+	# #
+	# # creating synonyms
+	# PROVIDERS['mongodb'] = PROVIDERS['mongo']
+	# PROVIDERS['couchdb'] = PROVIDERS['couch']
+	# PROVIDERS['bq'] 	 = PROVIDERS['bigquery']
+	# PROVIDERS['sqlite3'] = PROVIDERS['sqlite']
+	# PROVIDERS['rabbit'] = PROVIDERS['rabbitmq']
+	# PROVIDERS['rabbitmq-server'] = PROVIDERS['rabbitmq']
 	
 	@staticmethod
 	def instance(**_args):

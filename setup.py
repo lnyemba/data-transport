@@ -4,7 +4,10 @@ This is a build file for the
 from setuptools import setup, find_packages
 import os
 import sys
-from version import __version__,__author__
+# from version import __version__,__author__
+from info import __version__, __author__
+
+
 # __author__ = 'The Phi Technology'
 # __version__= '1.8.0'
 
@@ -15,7 +18,7 @@ args    = {
     "version":__version__,
     "author":__author__,"author_email":"info@the-phi.com",
     "license":"MIT",
-    "packages":["transport"]}
+    "packages":["transport","info"]}
 args["keywords"]=['mongodb','couchdb','rabbitmq','file','read','write','s3','sqlite']
 args["install_requires"] = ['pyncclient','pymongo','sqlalchemy<2.0.0','pandas','typer','pandas-gbq','numpy','cloudant','pika','nzpy','boto3','boto','pyarrow','google-cloud-bigquery','google-cloud-bigquery-storage','flask-session','smart_open','botocore','psycopg2-binary','mysql-connector-python']
 args["url"] =   "https://healthcareio.the-phi.com/git/code/transport.git"
