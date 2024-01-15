@@ -17,7 +17,7 @@ from google.cloud import bigquery as bq
 import nzpy as nz   #--- netezza drivers
 import os
 
-from transport.version import __version__
+from info import __version__
 
 POSTGRESQL 	= 'postgresql'
 MONGODB 	= 'mongodb'
