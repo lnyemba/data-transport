@@ -95,7 +95,8 @@ PROVIDERS = {
     
     MONGODB:{'read':mongo.MongoReader,'write':mongo.MongoWriter,'default':{'port':27017,'host':'localhost'}},
     COUCHDB:{'read':couch.CouchReader,'writer':couch.CouchWriter,'default':{'host':'localhost','port':5984}},
-    ETL :{'read':etl.Transporter,'write':etl.Transporter}
+#     ETL :{'read':etl.Transporter,'write':etl.Transporter}
+    ETL :{'read':etl.instance,'write':etl.instance}
 }
 DEFAULT = {PG:{'host':'localhost','port':5432},MYSQL:{'host':'localhost','port':3306}}
 DEFAULT[MONGODB] = {'port':27017,'host':'localhost'}
