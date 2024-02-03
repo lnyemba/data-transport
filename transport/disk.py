@@ -113,8 +113,6 @@ class SQLite :
 		self.conn = sqlite3.connect(self.path,isolation_level="IMMEDIATE")
 		self.conn.row_factory = sqlite3.Row
 		self.fields = _args['fields'] if 'fields' in _args else []
-		path = self._path
-		self._engine = create_engine(f'sqlite://{path}')
 	def has (self,**_args):
 		found = False
 		try:
@@ -178,6 +176,8 @@ class SQLiteWriter(SQLite,DiskWriter) :
 		# DiskWriter.__init__(self,**args)
 		super().__init__(**args)
 		self.table = args['table'] if 'table' in args else None
+		path = self.path
+		self._engine = create_engine(f'sqlite://{path}')
 		
 		# self.conn = sqlite3.connect(self.path,isolation_level="IMMEDIATE")
 		# self.conn.row_factory = sqlite3.Row
