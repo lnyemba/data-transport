@@ -177,7 +177,7 @@ class SQLiteWriter(SQLite,DiskWriter) :
 		super().__init__(**args)
 		self.table = args['table'] if 'table' in args else None
 		path = self.path
-		self._engine = create_engine(f'sqlite://{path}')
+		self._engine = create_engine(f'sqlite:///{path}')
 		
 		# self.conn = sqlite3.connect(self.path,isolation_level="IMMEDIATE")
 		# self.conn.row_factory = sqlite3.Row
