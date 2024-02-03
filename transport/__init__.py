@@ -50,7 +50,7 @@ else:
 	import s3
 	import sql
 	import etl
-	from version import __version__
+	from info import __version__,__author__
 	import providers
 # import psycopg2 as pg
 # import mysql.connector as my
