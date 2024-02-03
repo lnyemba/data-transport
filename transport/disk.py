@@ -218,7 +218,7 @@ class SQLiteWriter(SQLite,DiskWriter) :
 				_data = [_data]
 			_table = self.table if 'table' not in _args else _args['table']
 			_df = pd.DataFrame(_data)
-			_df.to_sql(_table,self._engine.connect()if_exists='append',index=False)
+			_df.to_sql(_table,self._engine.connect(),if_exists='append',index=False)
 		except Exception as e:
 			print (e)
 		SQLiteWriter.LOCK.release()
