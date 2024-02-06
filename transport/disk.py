@@ -211,18 +211,18 @@ class SQLiteWriter(SQLite,DiskWriter) :
 		#
 		# If the table doesn't exist we should create it
 		#
-	def write(self,_data,**_args):
-		SQLiteWriter.LOCK.acquire()
-		try:
-			if type(_data) == dict :
-				_data = [_data]
-			_table = self.table if 'table' not in _args else _args['table']
-			_df = pd.DataFrame(_data)
-			_df.to_sql(_table,self._engine.connect(),if_exists='append',index=False)
-		except Exception as e:
-			print (e)
-		SQLiteWriter.LOCK.release()
-	def _write(self,info,**_args):
+	# def write(self,_data,**_args):
+	# 	SQLiteWriter.LOCK.acquire()
+	# 	try:
+	# 		if type(_data) == dict :
+	# 			_data = [_data]
+	# 		_table = self.table if 'table' not in _args else _args['table']
+	# 		_df = pd.DataFrame(_data)
+	# 		_df.to_sql(_table,self._engine.connect(),if_exists='append',index=False)
+	# 	except Exception as e:
+	# 		print (e)
+	# 	SQLiteWriter.LOCK.release()
+	def write(self,info,**_args):
 		"""
 		"""
 		
@@ -247,17 +247,23 @@ class SQLiteWriter(SQLite,DiskWriter) :
 			cursor = self.conn.cursor()	
 			sql = " " .join(["INSERT INTO ",self.table,"(", ",".join(self.fields) ,")", "values(:values)"])
 			for row in info :
-				stream =["".join(["",value,""]) if type(value) == str else value for value in row.values()]
-				stream = json.dumps(stream,cls=IEncoder)
-				stream = stream.replace("[","").replace("]","")
+				values = [ str(row[field]) if type(row[field]) not in [list,dict] else json.dumps(row[field],cls=IEncoder) for field in self.fields]
+				values = ["".join(["'",value,"'"]) for value in values]
+
+				# stream =["".join(["",value,""]) if type(value) == str else value for value in row.values()]
+				# stream = json.dumps(stream,cls=IEncoder)
+				# stream = stream.replace("[","").replace("]","")
 				
-				
-				self.conn.execute(sql.replace(":values",stream) )
+				# print (sql.replace(":values",stream))
+				# self.conn.execute(sql.replace(":values",stream) )
+				self.conn.execute(sql.replace(":values", ",".join(values)) )
 				# cursor.commit()
 			
 			self.conn.commit()
 				# print (sql)
 		except Exception as e :
+			print ()
+			
 			print (e)
 			pass
 		SQLiteWriter.LOCK.release()
