@@ -20,26 +20,10 @@ args    = {
     "license":"MIT",
     "packages":["transport","info"]}
 args["keywords"]=['mongodb','couchdb','rabbitmq','file','read','write','s3','sqlite']
-args["install_requires"] = ['pyncclient','pymongo','sqlalchemy<2.0.0','pandas','typer','pandas-gbq','numpy','cloudant','pika','nzpy','boto3','boto','pyarrow','google-cloud-bigquery','google-cloud-bigquery-storage','flask-session','smart_open','botocore','psycopg2-binary','mysql-connector-python']
+args["install_requires"] = ['pyncclient','pymongo','sqlalchemy','pandas','typer','pandas-gbq','numpy','cloudant','pika','nzpy','boto3','boto','pyarrow','google-cloud-bigquery','google-cloud-bigquery-storage','flask-session','smart_open','botocore','psycopg2-binary','mysql-connector-python']
 args["url"] =   "https://healthcareio.the-phi.com/git/code/transport.git"
 args['scripts'] = ['bin/transport']
 if sys.version_info[0] == 2 :
     args['use_2to3'] = True
     args['use_2to3_exclude_fixers']=['lib2to3.fixes.fix_import']
 setup(**args)
-# setup(
-#     name = "data-transport",
-#     version = "1.0",
-#     author = "The Phi Technology LLC",
-#     author_email = "steve@the-phi.com",
-#     license = "MIT",
-#     packages=['transport'],
-#     keywords=['mongodb','couchdb','rabbitmq','file','read','write','s3'],
-#     install_requires = ['pymongo','numpy','cloudant','pika','boto','flask-session','smart_open'],
-#     url="https://dev.the-phi.com/git/steve/data-transport.git",
-#     use_2to3=True,
-#     long_description=read('README.md'),
-#     convert_2to3_doctests=['README.md'],
-#     #use_2to3_fixers=['your.fixers'],
-#     use_2to3_exclude_fixers=['lib2to3.fixes.fix_import'],
-#     )

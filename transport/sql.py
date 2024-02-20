@@ -29,6 +29,7 @@ from google.cloud import bigquery as bq
 
 from multiprocessing import Lock, RLock
 import pandas as pd
+import pandas_gbq as pd_gbq
 import numpy as np
 import nzpy as nz   #--- netezza drivers
 import sqlite3
@@ -409,7 +410,7 @@ class BigQuery:
                 _dataset = self.dataset if 'dataset' not in _args else _args['dataset']
                 sql = f"""SELECT column_name as name, data_type as type FROM {_dataset}.INFORMATION_SCHEMA.COLUMNS WHERE table_name = '{table}' """
                 _info = {'credentials':self.credentials,'dialect':'standard'}   
-                return pd.read_gbq(sql,**_info).to_dict(orient='records')
+                return pd_gbq.read_gbq(sql,**_info).to_dict(orient='records')
                 # return self.read(sql=sql).to_dict(orient='records')
                 # ref     = self.client.dataset(self.dataset).table(table)
                 
@@ -451,7 +452,7 @@ class BQReader(BigQuery,Reader) :
         if (':dataset' in SQL or ':DATASET' in SQL)  and self.dataset:
             SQL = SQL.replace(':dataset',self.dataset).replace(':DATASET',self.dataset)
         _info = {'credentials':self.credentials,'dialect':'standard'}       
-        return pd.read_gbq(SQL,**_info) if SQL else None  
+        return pd_gbq.read_gbq(SQL,**_info) if SQL else None  
         # return self.client.query(SQL).to_dataframe() if SQL else None
         
 
