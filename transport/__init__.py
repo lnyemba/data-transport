@@ -52,6 +52,11 @@ else:
 	import etl
 	from info import __version__,__author__
 	import providers
+
+import numpy as np
+from psycopg2.extensions import register_adapter, AsIs
+register_adapter(np.int64, AsIs)
+
 # import psycopg2 as pg
 # import mysql.connector as my
 # from google.cloud import bigquery as bq

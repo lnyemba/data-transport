@@ -20,7 +20,7 @@ args    = {
     "license":"MIT",
     "packages":["transport","info"]}
 args["keywords"]=['mongodb','couchdb','rabbitmq','file','read','write','s3','sqlite']
-args["install_requires"] = ['pyncclient','pymongo','sqlalchemy','pandas','typer','pandas-gbq','numpy','cloudant','pika','nzpy','boto3','boto','pyarrow','google-cloud-bigquery','google-cloud-bigquery-storage','flask-session','smart_open','botocore','psycopg2-binary','mysql-connector-python']
+args["install_requires"] = ['pyncclient','pymongo','sqlalchemy','pandas','typer','pandas-gbq','numpy','cloudant','pika','nzpy','boto3','boto','pyarrow','google-cloud-bigquery','google-cloud-bigquery-storage','flask-session','smart_open','botocore','psycopg2-binary','mysql-connector-python','numpy']
 args["url"] =   "https://healthcareio.the-phi.com/git/code/transport.git"
 args['scripts'] = ['bin/transport']
 if sys.version_info[0] == 2 :
