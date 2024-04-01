@@ -18,7 +18,8 @@ args    = {
     "version":__version__,
     "author":__author__,"author_email":"info@the-phi.com",
     "license":"MIT",
-    "packages":["transport","info"]}
+    # "packages":["transport","info","transport/sql"]},
+    "packages": find_packages(include=['info', 'transport.*'])}
 args["keywords"]=['mongodb','couchdb','rabbitmq','file','read','write','s3','sqlite']
 args["install_requires"] = ['pyncclient','pymongo','sqlalchemy','pandas','typer','pandas-gbq','numpy','cloudant','pika','nzpy','boto3','boto','pyarrow','google-cloud-bigquery','google-cloud-bigquery-storage','flask-session','smart_open','botocore','psycopg2-binary','mysql-connector-python','numpy']
 args["url"] =   "https://healthcareio.the-phi.com/git/code/transport.git"

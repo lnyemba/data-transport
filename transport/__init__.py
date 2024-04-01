@@ -18,13 +18,14 @@ Source Code is available under MIT License:
 """
 import numpy as np
 
-from transport import sql, nosql, cloud, other
+import sql, nosql, cloud, other
 import pandas as pd
 import json
 import os
 from info import __version__,__author__
 from transport.iowrapper import IWriter, IReader
 from transport.plugins import PluginLoader
+from transport import providers
 PROVIDERS = {}
 def init():
     global PROVIDERS
