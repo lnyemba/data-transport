@@ -80,7 +80,11 @@ def supported (format:str="table") :
     This function will print supported providers and their associated classifications
     """
     _df =  (transport.supported())
-    print (json.dumps(_df.to_dict(orient="list")))
+    if format in ['list','json'] :
+        print (json.dumps(_df.to_dict(orient="list")))
+    else:
+         print (_df)
+    print ()
 
 @app.command()
 def version():
