@@ -17,21 +17,7 @@ import sys
 import json
 import re
 from multiprocessing import Lock, RLock
-# from transport.common import IEncoder
-
-class IEncoder (json.JSONEncoder):
-	def default (self,object):
-		if type(object) == np.integer :
-			return int(object)
-		elif type(object) == np.floating:
-			return float(object)
-		elif type(object) == np.ndarray :
-			return object.tolist()
-		elif type(object) == datetime :
-			return object.isoformat()
-		else:
-			return super(IEncoder,self).default(object)
-
+from transport.common import IEncoder
 
 class Mongo :
     lock = RLock()
