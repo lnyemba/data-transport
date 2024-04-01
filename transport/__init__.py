@@ -17,12 +17,14 @@ Source Code is available under MIT License:
     https://hiplab.mc.vanderbilt.edu/git/hiplab/data-transport
 """
 import numpy as np
+
 from transport import sql, nosql, cloud, other
 import pandas as pd
 import json
 import os
 from info import __version__,__author__
-
+from transport.iowrapper import IWriter, IReader
+from transport.plugins import PluginLoader
 PROVIDERS = {}
 def init():
     global PROVIDERS
@@ -31,7 +33,6 @@ def init():
             if _provider_name.startswith('__') :
                 continue
             PROVIDERS[_provider_name] = {'module':getattr(_module,_provider_name),'type':_module.__name__}
-# print ([ {name:getattr(sql,name)} for name in dir(sql) if not name.startswith('__')])
 
 def instance (**_args):
     """
@@ -55,9 +56,23 @@ def instance (**_args):
             _context = _args['context']
         else:
             _context = 'read'
-        _pointer = getattr(_module,'Reader') if _context == 'read' else getattr(_module,'Writer')
-        return _pointer (**_args)
-        pass
+        _pointer    = getattr(_module,'Reader') if _context == 'read' else getattr(_module,'Writer')
+        _agent      = _pointer (**_args)
+        #
+        loader = None
+        if 'plugins' in _args :
+            _params = _args['plugins']
+
+            if 'path' in _params and 'names' in _params :
+                loader = PluginLoader(**_params)
+            elif type(_params) == list:
+                loader = PluginLoader()
+                for _delegate in _params :
+                    loader.set(_delegate)
+
+
+        return IReader(_agent,loader) if _context == 'read' else IWriter(_agent,loader)
+
     else:
         raise Exception ("Missing or Unknown provider")
     pass
@@ -79,11 +94,3 @@ class factory :
     pass
 factory.instance = instance
 init()
-# if __name__ == '__main__' :
-# # if not PROVIDERS :
-#     init()
-#     print (list(PROVIDERS.keys()))
-#     pgr = instance(provider='postgresql',database='io',table='foo',write=True)
-#     print (pgr.read())
-#     print ()
-#     print (supported())
