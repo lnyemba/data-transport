@@ -118,8 +118,12 @@ class BaseWriter (SQLBase):
         #
         _table = _args['table'] if 'table' in _args else self._table
         _mode = {'chunksize':2000000,'if_exists':'append','index':False}
-        if 'schema' in _args :
-            _mode['schema'] = _args['schema']
-        if 'if_exists' in _args :
-            _mode['if_exists'] = _args['if_exists']
-        _df.to_sql(_table,self._engine,**_args,index=False)
+        for key in ['if_exists','index','chunksize'] :
+            if key in _args :
+                _mode[key] = _args[key]
+        # if 'schema' in _args :
+        #     _mode['schema'] = _args['schema']
+        # if 'if_exists' in _args :
+        #     _mode['if_exists'] = _args['if_exists']
+
+        _df.to_sql(_table,self._engine,**_mode)
