@@ -213,12 +213,26 @@ class Writer(Mongo):
                 _uid = self.collection if 'doc' not in _args else _args['doc']
             if self._lock :
                 Mongo.lock.acquire()
+            
             if type(info) == list or type(info) == pd.DataFrame :
-                info if type(info) == list else info.to_dict(orient='records')
-                info = json.loads(json.dumps(info,cls=IEncoder)) 
+                if type(info) == pd.DataFrame :
+                    info = info.to_dict(orient='records')
+                # info if type(info) == list else info.to_dict(orient='records')
+                info = json.loads(json.dumps(info)) 
                 self.db[_uid].insert_many(info)
             else:
-                self.db[_uid].insert_one(json.loads(json.dumps(info,cls=IEncoder)))
+                #
+                # sometimes a dictionary can have keys with arrays (odd shaped)
+                #
+                _keycount = len(info.keys())
+                _arraycount = [len(info[key]) for key in info if type(info[key]) in  (list,np.array,np.ndarray)]
+                if _arraycount and len(_arraycount) == _keycount and np.max(_arraycount) == np.min(_arraycount) :
+                    #
+                    # In case an object with consistent structure is passed, we store it accordingly
+                    #
+                    self.write(pd.DataFrame(info),**_args)
+                else:
+                    self.db[_uid].insert_one(json.loads(json.dumps(info,cls=IEncoder)))
         finally:
             if self._lock :
                 Mongo.lock.release()
