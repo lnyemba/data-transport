@@ -62,8 +62,14 @@ def wait(jobs):
         time.sleep(1)
 
 @app.command(name="apply")
-def move (path,index=None):
+def apply (path,index=None):
+    """
+    This function applies data transport from one source to one or several others
 
+        :path   path of the configuration file
+        
+        :index  index of the _item of interest (otherwise everything will be processed)
+    """
     _proxy = lambda _object: _object.write(_object.read())
     if os.path.exists(path):
         file = open(path)

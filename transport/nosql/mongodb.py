@@ -218,7 +218,7 @@ class Writer(Mongo):
                 if type(info) == pd.DataFrame :
                     info = info.to_dict(orient='records')
                 # info if type(info) == list else info.to_dict(orient='records')
-                info = json.loads(json.dumps(info)) 
+                info = json.loads(json.dumps(info,cls=IEncoder)) 
                 self.db[_uid].insert_many(info)
             else:
                 #
