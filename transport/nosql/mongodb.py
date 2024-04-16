@@ -12,7 +12,8 @@ from bson.binary    import Binary
 from datetime import datetime
 import pandas as pd
 import numpy as np
-import gridfs
+# import gridfs
+from gridfs import GridFS
 import sys
 import json
 import re
@@ -243,13 +244,17 @@ class Writer(Mongo):
         """
 
         collection = self.db[self.collection]
-        if collection.count_document() > 0  and '_id' in document:
+        if collection.count_documents() > 0  and '_id' in document:
             id = document['_id']
             del document['_id']
             collection.find_one_and_replace({'_id':id},document)
         else:
-            collection.delete_many({})
-            self.write(info)
+            #
+            # Nothing to be done if we did not find anything
+            #
+            pass
+            # collection.delete_many({})
+            # self.write(info)
     def close(self):
         Mongo.close(self)
         # collecton.update_one({"_id":self.collection},document,True)
