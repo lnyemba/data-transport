@@ -26,7 +26,9 @@ S3      = 's3'
 CALLBACK = 'callback'
 CONSOLE     = 'console'
 RABBITMQ = 'rabbitmq'
-DATABRICKS= 'databricks'
+DATABRICKS  = 'databricks'
+MSSQL       ='sqlserver'
+SQLSERVER   ='sqlserver'
 
 #
 # synonyms of the above

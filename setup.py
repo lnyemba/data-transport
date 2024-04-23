@@ -22,10 +22,10 @@ args    = {
 
     "packages": find_packages(include=['info','transport', 'transport.*'])}
 args["keywords"]=['mongodb','couchdb','rabbitmq','file','read','write','s3','sqlite']
-args["install_requires"] = ['pyncclient','pymongo','sqlalchemy','pandas','typer','pandas-gbq','numpy','cloudant','pika','nzpy','boto3','boto','pyarrow','google-cloud-bigquery','google-cloud-bigquery-storage','flask-session','smart_open','botocore','psycopg2-binary','mysql-connector-python','numpy']
+args["install_requires"] = ['pyncclient','pymongo','sqlalchemy','pandas','typer','pandas-gbq','numpy','cloudant','pika','nzpy','boto3','boto','pyarrow','google-cloud-bigquery','google-cloud-bigquery-storage','flask-session','smart_open','botocore','psycopg2-binary','mysql-connector-python','numpy','pymssql']
 args["url"] =   "https://healthcareio.the-phi.com/git/code/transport.git"
 args['scripts'] = ['bin/transport']
-if sys.version_info[0] == 2 :
-    args['use_2to3'] = True
-    args['use_2to3_exclude_fixers']=['lib2to3.fixes.fix_import']
+# if sys.version_info[0] == 2 :
+#     args['use_2to3'] = True
+#     args['use_2to3_exclude_fixers']=['lib2to3.fixes.fix_import']
 setup(**args)
