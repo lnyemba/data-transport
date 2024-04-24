@@ -4,12 +4,13 @@ This project implements an abstraction of objects that can have access to a vari
 
 # Why Use Data-Transport ?
 
-Mostly data scientists that don't really care about the underlying database and would like a simple and consistent way to read/write data and have will be well served. Additionally we implemented lightweight Extract Transform Loading API and command line (CLI) tool.
+Mostly data scientists that don't really care about the underlying database and would like a simple and consistent way to read/write and move data are well served. Additionally we implemented lightweight Extract Transform Loading API and command line (CLI) tool. Finally it is possible to add pre/post processing pipeline functions to read/write
 
 1. Familiarity with **pandas data-frames**
 2. Connectivity **drivers** are included
 3. Mining data from various sources
-4. Useful for data migrations or ETL
+4. Useful for data migrations or **ETL**
+
 
 ## Installation
 
