@@ -14,7 +14,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 """
 import os
 import sqlalchemy
-from transport.common import Reader,Writer
+# from transport.common import Reader,Writer
 import pandas as pd
 
 
@@ -39,7 +39,7 @@ class Bricks:
         # Sometimes when the cluster isn't up and running it takes a while, the user should be alerted of this
         #
 
-        _uri = f'''databricks://token:{_token}@{_host}?http_path={_cluster_path}&catalog={_catalog}&schema={self._schema}'''
+        _uri = f'''databricks+connector://token:{_token}@{_host}?http_path={_cluster_path}&catalog={_catalog}&schema={self._schema}'''
         self._engine = sqlalchemy.create_engine (_uri)
         pass
     def meta(self,**_args):
@@ -67,7 +67,7 @@ class Bricks:
         except Exception as e:
             pass
 
-class BricksReader(Bricks,Reader):
+class Reader(Bricks):
     """
     This class is designed for reads and will execute reads against a table name or a select SQL statement
     """
@@ -89,7 +89,7 @@ class BricksReader(Bricks,Reader):
         else:
             return pd.DataFrame() 
     pass
-class BricksWriter(Bricks,Writer):
+class Writer(Bricks):
     def __init__(self,**_args):
         super().__init__(**_args)
     def write(self,_data,**_args):  

@@ -11,10 +11,7 @@ import numpy as np
 import botocore
 from smart_open import smart_open
 import sys
-if sys.version_info[0] > 2 :
-	from transport.common import Reader, Writer
-else:
-	from common import Reader, Writer
+
 import json
 from io import StringIO
 import json
@@ -73,7 +70,7 @@ class s3 :
 		# return self.s3.get_all_buckets()
 		
         	
-class s3Reader(s3,Reader) :
+class Reader(s3) :
 	"""	
 		Because s3 contains buckets and files, reading becomes a tricky proposition :
 		- list files		if file is None
@@ -113,7 +110,7 @@ class s3Reader(s3,Reader) :
 			limit = args['size'] if 'size' in args else -1
 			return self.stream(limit)
 
-class s3Writer(s3,Writer) :
+class Writer(s3) :
 
 	def __init__(self,**args) :
 		s3.__init__(self,**args)

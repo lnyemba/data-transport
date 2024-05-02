@@ -8,10 +8,10 @@ This file is a wrapper around couchdb using IBM Cloudant SDK that has an interfa
 import cloudant
 import json
 import sys
-if sys.version_info[0] > 2 :
-	from transport.common import Reader, Writer
-else:
-	from common import Reader, Writer
+# from transport.common import Reader, Writer
+from datetime import datetime
+
+
 class Couch:
 	"""
 	This class is a wrapper for read/write against couchdb. The class captures common operations for read/write.
@@ -77,7 +77,7 @@ class Couch:
 		
 
 		
-class CouchReader(Couch,Reader):
+class Reader(Couch):
 	"""
 		This function will read an attachment from couchdb and return it to calling code. The attachment must have been placed before hand (otherwise oops)
 		@T: Account for security & access control
@@ -94,28 +94,7 @@ class CouchReader(Couch,Reader):
 		else:
 			self.filename = None
 
-	# def isready(self):
-	# 	#
-	# 	# Is the basic information about the database valid
-	# 	#
-	# 	p = Couchdb.isready(self)
-		
-	# 	if p == False:
-	# 		return False
-	# 	#
-	# 	# The database name is set and correct at this point
-	# 	# We insure the document of the given user has the requested attachment.
-	# 	# 
-		
-	# 	doc = self.dbase.get(self._id)
-		
-	# 	if '_attachments' in doc:
-	# 		r = self.filename in doc['_attachments'].keys()
-			
-	# 	else:
-	# 		r = False
-		
-	# 	return r	
+	
 	def stream(self):
 		#
 		# @TODO Need to get this working ...
@@ -143,7 +122,7 @@ class CouchReader(Couch,Reader):
 			document = {}
 		return document
 
-class CouchWriter(Couch,Writer):		
+class Writer(Couch):		
 	"""
 		This class will write on a couchdb document provided a scope
 		The scope is the attribute that will be on the couchdb document
@@ -156,16 +135,16 @@ class CouchWriter(Couch,Writer):
 			@param	dbname		database name (target)
 		"""
 
-		Couch.__init__(self,**args)
+		super().__init__(self,**args)
 	def set (self,info):
-		document  = cloudand.document.Document(self.dbase,self._id)
+		document  = cloudant.document.Document(self.dbase,self._id)
 		if document.exists() :
 			keys = list(set(document.keys()) - set(['_id','_rev','_attachments']))
 			for id in keys :
 				document.field_set(document,id,None)
-			for id in args :
-				value = args[id]
-				document.field_set(document,id,value)
+			for id in info :
+				value = info[id]
+				document.info(document,id,value)
 			
 			document.save()
 			pass

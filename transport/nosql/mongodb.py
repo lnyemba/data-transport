@@ -5,22 +5,21 @@ Steve L. Nyemba, The Phi Technology LLC
 This file is a wrapper around mongodb for reading/writing content against a mongodb server and executing views (mapreduce)
 """
 from pymongo        import MongoClient
+import bson
 from bson.objectid  import ObjectId
 from bson.binary    import Binary
 # import nujson as json
 from datetime import datetime
 import pandas as pd
 import numpy as np
-import gridfs
-# from transport import Reader,Writer
+# import gridfs
+from gridfs import GridFS
 import sys
-if sys.version_info[0] > 2 :
-	from transport.common import Reader, Writer, IEncoder
-else:
-	from common import Reader, Writer
 import json
 import re
 from multiprocessing import Lock, RLock
+from transport.common import IEncoder
+
 class Mongo :
     lock = RLock()
     """
@@ -33,7 +32,7 @@ class Mongo :
             :username   username for authentication
             :password   password for current user
         """
-
+        self.host = 'localhost' if 'host' not in args else args['host']
         self.mechanism= 'SCRAM-SHA-256' if 'mechanism' not in args else args['mechanism']
         # authSource=(args['authSource'] if 'authSource' in args else self.dbname)
         self._lock = False if 'lock' not in args else args['lock']
@@ -61,7 +60,7 @@ class Mongo :
         # Let us perform aliasing in order to remain backwards compatible
         
         self.dbname = self.db if hasattr(self,'db')else self.dbname
-        self.uid    = _args['table'] if 'table' in _args else (_args['doc'] if 'doc' in _args else (_args['collection'] if 'collection' in _args else None))
+        self.collection    = _args['table'] if 'table' in _args else (_args['doc'] if 'doc' in _args else (_args['collection'] if 'collection' in _args else None))
         if username and password :
             self.client = MongoClient(self.host,
                       username=username,
@@ -76,7 +75,7 @@ class Mongo :
         
     def isready(self):
         p = self.dbname in self.client.list_database_names() 
-        q = self.uid in self.client[self.dbname].list_collection_names()
+        q = self.collection in self.client[self.dbname].list_collection_names()
         return p and q
     def setattr(self,key,value):
         _allowed = ['host','port','db','doc','collection','authSource','mechanism']
@@ -87,7 +86,7 @@ class Mongo :
         self.client.close()
     def meta(self,**_args):
         return []
-class MongoReader(Mongo,Reader):
+class Reader(Mongo):
     """
     This class will read from a mongodb data store and return the content of a document (not a collection)
     """
@@ -100,7 +99,7 @@ class MongoReader(Mongo,Reader):
             # @TODO:
             cmd = {}
             if 'aggregate' not in cmd and 'aggregate' not in args:
-                cmd['aggregate'] = self.uid
+                cmd['aggregate'] = self.collection
             elif 'aggregate' in args :
                 cmd['aggregate'] = args['aggregate']
             if 'pipeline' in args :
@@ -144,9 +143,9 @@ class MongoReader(Mongo,Reader):
                 elif 'collection' in args :
                     _uid = args['collection']
                 else:
-                    _uid = self.uid 
+                    _uid = self.collection 
             else:
-                _uid = self.uid
+                _uid = self.collection
             collection = self.db[_uid]                
             _filter = args['filter'] if 'filter' in args else {}
             _df =  pd.DataFrame(collection.find(_filter))
@@ -157,7 +156,7 @@ class MongoReader(Mongo,Reader):
         This function is designed to execute a view (map/reduce) operation
         """
         pass
-class MongoWriter(Mongo,Writer):
+class Writer(Mongo):
     """
     This class is designed to write to a mongodb collection within a database
     """
@@ -180,7 +179,7 @@ class MongoWriter(Mongo,Writer):
         """
         This function will archive documents to the 
         """
-        collection = self.db[self.uid]
+        collection = self.db[self.collection]
         rows  = list(collection.find())
         for row in rows :
             if type(row['_id']) == ObjectId :
@@ -188,8 +187,8 @@ class MongoWriter(Mongo,Writer):
         stream = Binary(json.dumps(collection,cls=IEncoder).encode())
         collection.delete_many({})
         now = "-".join([str(datetime.now().year()),str(datetime.now().month), str(datetime.now().day)])
-        name = ".".join([self.uid,'archive',now])+".json"
-        description = " ".join([self.uid,'archive',str(len(rows))])
+        name = ".".join([self.collection,'archive',now])+".json"
+        description = " ".join([self.collection,'archive',str(len(rows))])
         self.upload(filename=name,data=stream,description=description,content_type='application/json')
         # gfs = GridFS(self.db)
         # gfs.put(filename=name,description=description,data=stream,encoding='utf-8')
@@ -197,27 +196,44 @@ class MongoWriter(Mongo,Writer):
         
             
         pass
+    
     def write(self,info,**_args):
         """
         This function will write to a given collection i.e add a record to a collection (no updates)
         @param info new record in the collection to be added
         """
-        # document  = self.db[self.uid].find()
-        #collection = self.db[self.uid]
+        # document  = self.db[self.collection].find()
+        #collection = self.db[self.collection]
         # if type(info) == list :
-        #     self.db[self.uid].insert_many(info)
+        #     self.db[self.collection].insert_many(info)
         # else:
         try:
             if 'table' in _args or 'collection' in _args :
                 _uid = _args['table'] if 'table' in _args else _args['collection']
             else:
-                _uid = self.uid if 'doc' not in _args else _args['doc']
+                _uid = self.collection if 'doc' not in _args else _args['doc']
             if self._lock :
                 Mongo.lock.acquire()
+            
             if type(info) == list or type(info) == pd.DataFrame :
-                self.db[_uid].insert_many(info if type(info) == list else info.to_dict(orient='records'))
+                if type(info) == pd.DataFrame :
+                    info = info.to_dict(orient='records')
+                # info if type(info) == list else info.to_dict(orient='records')
+                info = json.loads(json.dumps(info,cls=IEncoder)) 
+                self.db[_uid].insert_many(info)
             else:
-                self.db[_uid].insert_one(info)
+                #
+                # sometimes a dictionary can have keys with arrays (odd shaped)
+                #
+                _keycount = len(info.keys())
+                _arraycount = [len(info[key]) for key in info if type(info[key]) in  (list,np.array,np.ndarray)]
+                if _arraycount and len(_arraycount) == _keycount and np.max(_arraycount) == np.min(_arraycount) :
+                    #
+                    # In case an object with consistent structure is passed, we store it accordingly
+                    #
+                    self.write(pd.DataFrame(info),**_args)
+                else:
+                    self.db[_uid].insert_one(json.loads(json.dumps(info,cls=IEncoder)))
         finally:
             if self._lock :
                 Mongo.lock.release()
@@ -227,15 +243,19 @@ class MongoWriter(Mongo,Writer):
         Please use this function with great care (archive the content first before using it... for safety)
         """
 
-        collection = self.db[self.uid]
-        if collection.count_document() > 0  and '_id' in document:
+        collection = self.db[self.collection]
+        if collection.count_documents() > 0  and '_id' in document:
             id = document['_id']
             del document['_id']
             collection.find_one_and_replace({'_id':id},document)
         else:
-            collection.delete_many({})
-            self.write(info)
+            #
+            # Nothing to be done if we did not find anything
+            #
+            pass
+            # collection.delete_many({})
+            # self.write(info)
     def close(self):
         Mongo.close(self)
-        # collecton.update_one({"_id":self.uid},document,True)
+        # collecton.update_one({"_id":self.collection},document,True)
 

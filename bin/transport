@@ -48,24 +48,8 @@ import typer
 import os
 import transport
 from transport import etl
-from transport import providers
+# from transport import providers
 
-# SYS_ARGS = {}
-# if len(sys.argv) > 1:
-    
-#     N = len(sys.argv)
-#     for i in range(1,N):
-#         value = None
-#         if sys.argv[i].startswith('--'):
-#             key = sys.argv[i][2:] #.replace('-','')
-#             SYS_ARGS[key] = 1			
-#             if i + 1 < N:
-#                 value = sys.argv[i + 1] = sys.argv[i+1].strip()
-#             if key and value and not value.startswith('--'):
-#                 SYS_ARGS[key] = value
-                
-        
-#         i += 2
 
 app = typer.Typer()
 
@@ -77,9 +61,15 @@ def wait(jobs):
         jobs = [thread for thread in jobs if thread.is_alive()]
         time.sleep(1)
 
-@app.command()
-def move (path,index=None):
+@app.command(name="apply")
+def apply (path,index=None):
+    """
+    This function applies data transport from one source to one or several others
 
+        :path   path of the configuration file
+        
+        :index  index of the _item of interest (otherwise everything will be processed)
+    """
     _proxy = lambda _object: _object.write(_object.read())
     if os.path.exists(path):
         file = open(path)
@@ -90,27 +80,18 @@ def move (path,index=None):
             etl.instance(**_config)
         else:
             etl.instance(config=_config)
-                 
-        #
-        # if type(_config) == dict :
-        #     _object = transport.etl.instance(**_config) 
-        #     _proxy(_object)
-        # else:
-        #     #
-        #     # here we are dealing with a list of objects (long ass etl job)
-        #     jobs = []
-        #     failed = []
-        #     for _args in _config :
-        #         if index and _config.index(_args) != index :
-        #             continue
+@app.command(name="providers")
+def supported (format:str="table") :
+    """
+    This function will print supported providers and their associated classifications
+    """
+    _df =  (transport.supported())
+    if format in ['list','json'] :
+        print (json.dumps(_df.to_dict(orient="list")))
+    else:
+         print (_df)
+    print ()
 
-        #         _object=transport.etl.instance(**_args)
-        #         thread = Process(target=_proxy,args=(_object,))
-        #         thread.start()
-        #         jobs.append(thread())
-        #         if _config.index(_args) == 0 :
-        #             thread.join()
-            # wait(jobs)
 @app.command()
 def version():
      print (transport.version.__version__)

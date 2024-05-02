@@ -1,14 +1,14 @@
 from flask import request, session
 from datetime import datetime
 import re
-from transport.common import Reader, Writer
+# from transport.common import Reader, Writer
 import json
 import requests
 from io import StringIO
 import pandas as pd
 
 
-class HttpReader(Reader):
+class Reader:
 	"""
 	This class is designed to read data from an Http request file handler provided to us by flask
 	The file will be heald in memory and processed accordingly
@@ -38,7 +38,7 @@ class HttpReader(Reader):
 			r = requests.get(self._url,headers = self._headers)
 		return self.format(r)
 		
-class HttpWriter(Writer):
+class Writer:
 	"""
 	This class is designed to submit data to an endpoint (url)
 	"""

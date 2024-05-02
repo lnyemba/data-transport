@@ -11,10 +11,10 @@ import re
 import json
 import os
 import sys
-if sys.version_info[0] > 2 :
-	from transport.common import Reader, Writer
-else:
-	from common import Reader, Writer
+# if sys.version_info[0] > 2 :
+# 	from transport.common import Reader, Writer
+# else:
+# 	from common import Reader, Writer
 import json
 from multiprocessing import RLock
 class MessageQueue:
@@ -80,7 +80,7 @@ class MessageQueue:
 			self.channel.close()
 			self.connection.close()
 
-class QueueWriter(MessageQueue,Writer):
+class Writer(MessageQueue):
 	"""
 		This class is designed to publish content to an AMQP (Rabbitmq)
 		The class will rely on pika to implement this functionality
@@ -93,13 +93,6 @@ class QueueWriter(MessageQueue,Writer):
 		#self.queue = params['queue']
 		MessageQueue.__init__(self,**params);
 		self.init()
-		
-		
-
-		
-
-
-
 	def write(self,data,_type='text/plain'):
 		"""
 		This function writes a stream of data to the a given queue
@@ -122,7 +115,7 @@ class QueueWriter(MessageQueue,Writer):
 		self.channel.queue_delete( queue=self.queue);
 		self.close()
 		
-class QueueReader(MessageQueue,Reader):
+class Reader(MessageQueue):
 	"""
 	This class will read from a queue provided an exchange, queue and host
 	@TODO: Account for security and virtualhosts

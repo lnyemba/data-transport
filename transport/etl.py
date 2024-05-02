@@ -83,7 +83,12 @@ class Transporter(Process):
         _reader = transport.factory.instance(**self._source)
         #
         # If arguments are provided then a query is to be executed (not just a table dump)
-        return _reader.read() if 'args' not in self._source else _reader.read(**self._source['args'])
+        if 'cmd' in self._source or 'query' in self._source :
+            _query = self._source['cmd'] if 'cmd' in self._source else self._source['query']
+            return _reader.read(**_query)
+        else:
+            return _reader.read()
+        # return _reader.read() if 'query' not in self._source else _reader.read(**self._source['query'])
         
     def _delegate_write(self,_data,**_args):
         """

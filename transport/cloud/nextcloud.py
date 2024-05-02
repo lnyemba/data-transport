@@ -3,7 +3,7 @@ We are implementing transport to and from nextcloud (just like s3)
 """
 import os
 import sys
-from transport.common import Reader,Writer, IEncoder
+from transport.common import IEncoder
 import pandas as pd
 from io import StringIO
 import json
@@ -28,7 +28,7 @@ class Nextcloud :
             pass
         
     
-class NextcloudReader(Nextcloud,Reader):
+class Reader(Nextcloud):
     def __init__(self,**_args):
         # self._file = [] if 'file' not in _args else _args['file']
         super().__init__(**_args)
@@ -54,7 +54,7 @@ class NextcloudReader(Nextcloud,Reader):
                 # if it is neither a structured document like csv, we will return the content as is
                 return _content
         return None     
-class NextcloudWriter (Nextcloud,Writer):
+class Writer (Nextcloud):
     """
     This class will write data to an instance of nextcloud
     """
