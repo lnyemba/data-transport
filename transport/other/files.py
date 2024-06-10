@@ -53,8 +53,8 @@ class Writer (File):
 		"""
 		try:
 			
-			_delim = self._delimiter if 'delimiter' not in _args else _args['delimiter']
-			_path = self._path if 'path' not  in _args else _args['path']
+			_delim = self.delimiter if 'delimiter' not in _args else _args['delimiter']
+			_path = self.path if 'path' not  in _args else _args['path']
 			_mode = self._mode if 'mode' not in _args else _args['mode']
 			info.to_csv(_path,index=False,sep=_delim)
 			
@@ -62,6 +62,7 @@ class Writer (File):
 		except Exception as e:
 			#
 			# Not sure what should be done here ...
+			print (e)
 			pass
 		finally:
 			# DiskWriter.THREAD_LOCK.release()
