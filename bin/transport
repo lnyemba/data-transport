@@ -44,12 +44,15 @@ import sys
 import transport
 import time
 from multiprocessing import Process
-import typer
+
 import os
 import transport
 from transport import etl
 # from transport import providers
-
+import typer
+from typing_extensions import Annotated
+from typing import Optional
+import time
 
 app = typer.Typer()
 
@@ -62,28 +65,33 @@ def wait(jobs):
         time.sleep(1)
 
 @app.command(name="apply")
-def apply (path,index=None):
+def apply (path:Annotated[str,typer.Argument(help="path of the configuration file")],
+        index:int = typer.Option(help="index of the item of interest, otherwise everything in the file will be processed")):
     """
     This function applies data transport from one source to one or several others
-
-        :path   path of the configuration file
-        
-        :index  index of the _item of interest (otherwise everything will be processed)
     """
-    _proxy = lambda _object: _object.write(_object.read())
+    # _proxy = lambda _object: _object.write(_object.read())
     if os.path.exists(path):
         file = open(path)
         _config = json.loads (file.read() )
         file.close()
         if index :
-            _config = _config[ int(index)]
-            etl.instance(**_config)
-        else:
-            etl.instance(config=_config)
+            _config = [_config[ int(index)]]
+        jobs = []            
+        for _args in _config :
+            pthread = etl.instance(**_args) #-- automatically starts the process
+            jobs.append(pthread)
+        #
+        # @TODO: Log the number of processes started and estimated time
+        while jobs :
+             jobs = [pthread for pthread in jobs if pthread.is_alive()]
+             time.sleep(1)
+        #
+        # @TODO: Log the job termination here ...
 @app.command(name="providers")
-def supported (format:str="table") :
+def supported (format:Annotated[str,typer.Argument(help="format of the output, supported formats are (list,table,json)")]="table") :
     """
-    This function will print supported providers and their associated classifications
+    This function will print supported providers/vendors and their associated classifications
     """
     _df =  (transport.supported())
     if format in ['list','json'] :
@@ -94,9 +102,15 @@ def supported (format:str="table") :
 
 @app.command()
 def version():
-     print (transport.version.__version__)
+    """
+    This function will display version and license information
+    """
+
+    print (transport.__app_name__,'version ',transport.__version__)
+    print (transport.__license__)
+
 @app.command()
-def generate (path:str):
+def generate (path:Annotated[str,typer.Argument(help="path of the ETL configuration file template (name included)")]):
 	"""
 	This function will generate a configuration template to give a sense of how to create one
 	"""
@@ -104,15 +118,12 @@ def generate (path:str):
           {
                "source":{"provider":"http","url":"https://raw.githubusercontent.com/codeforamerica/ohana-api/master/data/sample-csv/addresses.csv"},
              "target":
-            [{"provider":"file","path":"addresses.csv","delimiter":"csv"},{"provider":"sqlite","database":"sample.db3","table":"addresses"}]
+            [{"provider":"files","path":"addresses.csv","delimiter":","},{"provider":"sqlite","database":"sample.db3","table":"addresses"}]
             }
             ]
 	file = open(path,'w')
 	file.write(json.dumps(_config))
 	file.close()
-@app.command()
-def usage():
-     print (__doc__)	
 if __name__ == '__main__' :
      app()
 # 	#

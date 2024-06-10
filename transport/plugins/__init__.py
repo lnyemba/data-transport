@@ -25,9 +25,9 @@ class plugin :
         self._name = _args['name']
         self._about = _args['about']
         self._mode = _args['mode'] if 'mode' in _args else 'rw'
-    def __call__(self,pointer):
-        def wrapper(_args):
-            return pointer(_args)
+    def __call__(self,pointer,**kwargs):
+        def wrapper(_args,**kwargs):
+            return pointer(_args,**kwargs)
         #
         # @TODO:
         # add attributes to the wrapper object
@@ -55,6 +55,7 @@ class PluginLoader :
         self._names = []
         if path and os.path.exists(path) and _names:
             for _name in self._names :
+                
                 spec = importlib.util.spec_from_file_location('private', path)
                 module = importlib.util.module_from_spec(spec)
                 spec.loader.exec_module(module) #--loads it into sys.modules
@@ -101,7 +102,7 @@ class PluginLoader :
         return _name in self._modules 
     def ratio (self):
         """
-        how many modules loaded vs unloaded given the list of names
+        This functiion determines how many modules loaded vs unloaded given the list of names
         """
 
         _n = len(self._names)
