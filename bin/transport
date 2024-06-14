@@ -47,7 +47,7 @@ def wait(jobs):
 
 @app.command(name="apply")
 def apply (path:Annotated[str,typer.Argument(help="path of the configuration file")],
-        index:int = typer.Option(help="index of the item of interest, otherwise everything in the file will be processed")):
+        index:int = typer.Option(default= None, help="index of the item of interest, otherwise everything in the file will be processed")):
     """
     This function applies data transport ETL feature to read data from one source to write it one or several others
     """
@@ -92,19 +92,23 @@ def version():
 
 @app.command()
 def generate (path:Annotated[str,typer.Argument(help="path of the ETL configuration file template (name included)")]):
-	"""
-	This function will generate a configuration template to give a sense of how to create one
-	"""
-	_config = [
-          {
-               "source":{"provider":"http","url":"https://raw.githubusercontent.com/codeforamerica/ohana-api/master/data/sample-csv/addresses.csv"},
-             "target":
+    """
+    This function will generate a configuration template to give a sense of how to create one
+    """
+    _config = [
+            {
+                "source":{"provider":"http","url":"https://raw.githubusercontent.com/codeforamerica/ohana-api/master/data/sample-csv/addresses.csv"},
+                "target":
             [{"provider":"files","path":"addresses.csv","delimiter":","},{"provider":"sqlite","database":"sample.db3","table":"addresses"}]
             }
             ]
-	file = open(path,'w')
-	file.write(json.dumps(_config))
-	file.close()
+    file = open(path,'w')
+    file.write(json.dumps(_config))
+    file.close()
+    print (f"""{CHECK_MARK} Successfully generated a template ETL file at {path}""" )
+    print ("""NOTE: Each line (source or target) is the content of an auth-file""")
+
+
 
 @app.command(name="init")
 def initregistry (email:Annotated[str,typer.Argument(help="email")],
@@ -131,8 +135,11 @@ def register (label:Annotated[str,typer.Argument(help="unique label that will be
     Learn more about auth-file at https://healthcareio.the-phi.com/data-transport
     """
     try:
-        transport.registry.set(label=label,auth_file=auth_file, default=default, path=path)
-        _msg = f"""{CHECK_MARK} Successfully added label "{label}" to data-transport registry"""
+        if transport.registry.exists(path) :
+            transport.registry.set(label=label,auth_file=auth_file, default=default, path=path)
+            _msg = f"""{CHECK_MARK} Successfully added label "{label}" to data-transport registry"""
+        else:
+            _msg = f"""{TIMES_MARK} Registry is not initialized, please initialize the registry (check help)"""
     except Exception as e:
         _msg = f"""{TIMES_MARK} {e}"""
     print (_msg)

@@ -48,10 +48,16 @@ def instance (**_args):
     kwargs      These are arguments that are provider/vendor specific
     """
     global PROVIDERS
-    if not registry.isloaded () :
-        registry.load() if 'path' not in _args else registry.load(_args['path'])
-    if 'label' in _args :
-        _info = registry.load(_args['label'])
+    # if not registry.isloaded () :
+    #     if ('path' in _args and registry.exists(_args['path'] )) or registry.exists():
+    #         registry.load() if 'path' not in _args else registry.load(_args['path'])
+    #         print ([' GOT IT'])
+    # if 'label' in _args and registry.isloaded():
+    #     _info = registry.get(_args['label'])
+    #     if _info :
+    #         #
+    #         _args = dict(_args,**_info)
+
     if 'auth_file' in _args:
         if os.path.exists(_args['auth_file']) :
             #
@@ -67,6 +73,17 @@ def instance (**_args):
         else:
             filename = _args['auth_file']
             raise Exception(f" {filename} was not found or is invalid")
+    if 'provider' not in _args and 'auth_file' not in _args :
+        if not registry.isloaded () :
+            if ('path' in _args and registry.exists(_args['path'] )) or registry.exists():
+                registry.load() if 'path' not in _args else registry.load(_args['path'])
+        if 'label' in _args and registry.isloaded():
+            _info = registry.get(_args['label'])
+            print(_info)
+            if _info :
+                #
+                _args = dict(_args,**_info)
+
     if 'provider' in _args and _args['provider'] in PROVIDERS :
         _info = PROVIDERS[_args['provider']]
         _module = _info['module']
@@ -110,6 +127,8 @@ class get :
     """
     @staticmethod
     def reader (**_args):
+        if not _args :
+            _args['label'] = 'default'
         _args['context'] = 'read'
         return instance(**_args)
     @staticmethod
@@ -117,6 +136,8 @@ class get :
         """
         This function is a wrapper that will return a writer to a database. It disambiguates the interface
         """
+        if not _args :
+            _args['label'] = 'default'
         _args['context'] = 'write'
         return instance(**_args)
     @staticmethod
