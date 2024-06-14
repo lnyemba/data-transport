@@ -8,7 +8,7 @@ Mostly data scientists that don't really care about the underlying database and 
 
 1. Familiarity with **pandas data-frames**
 2. Connectivity **drivers** are included
-3. Mining data from various sources
+3. Reading/Writing data from various sources
 4. Useful for data migrations or **ETL**
 
 
