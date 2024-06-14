@@ -13,29 +13,6 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-Usage :
-	transport help -- will print this page
-
-    transport move <path> [index]
-        <path>  path to the configuration file
-        <index> optional index within the configuration file
-
-e.g: configuration file (JSON formatted)
-    - single source to a single target
-
-    {"source":{"provider":"http","url":"https://cdn.wsform.com/wp-content/uploads/2020/06/agreement.csv"}
-        "target":{"provider":"sqlite3","path":"transport-demo.sqlite","table":"agreement"}
-    }
-
-    - single source to multiple targets
-    {
-        "source":{"provider":"http","url":"https://cdn.wsform.com/wp-content/uploads/2020/06/agreement.csv"},
-        "target":[
-            {"provider":"sqlite3","path":"transport-demo.sqlite","table":"agreement},
-            {"provider":"mongodb","db":"transport-demo","collection":"agreement"}
-        ]
-    }
-
 """
 import pandas as pd
 import numpy as np
@@ -53,9 +30,13 @@ import typer
 from typing_extensions import Annotated
 from typing import Optional
 import time
+from termcolor import colored
 
 app = typer.Typer()
-
+REGISTRY_PATH=os.sep.join([os.environ['HOME'],'.data-transport'])
+REGISTRY_FILE= 'transport-registry.json'
+CHECK_MARK = ' '.join(['[',colored(u'\u2713', 'green'),']'])
+TIMES_MARK= ' '.join(['[',colored(u'\u2717','red'),']'])
 # @app.command()
 def help() :     
 	print (__doc__)
@@ -68,7 +49,7 @@ def wait(jobs):
 def apply (path:Annotated[str,typer.Argument(help="path of the configuration file")],
         index:int = typer.Option(help="index of the item of interest, otherwise everything in the file will be processed")):
     """
-    This function applies data transport from one source to one or several others
+    This function applies data transport ETL feature to read data from one source to write it one or several others
     """
     # _proxy = lambda _object: _object.write(_object.read())
     if os.path.exists(path):
@@ -124,35 +105,40 @@ def generate (path:Annotated[str,typer.Argument(help="path of the ETL configurat
 	file = open(path,'w')
 	file.write(json.dumps(_config))
 	file.close()
+
+@app.command(name="init")
+def initregistry (email:Annotated[str,typer.Argument(help="email")],
+                  path:str=typer.Option(default=REGISTRY_PATH,help="path or location of the configuration file"), 
+                  override:bool=typer.Option(default=False,help="override existing configuration or not")):
+    """
+    This functiion will initialize the registry and have both application and calling code loading the database parameters by a label
+
+    """
+    try:
+        transport.registry.init(email=email, path=path, override=override)
+        _msg = f"""{CHECK_MARK} Successfully wrote configuration to {path} from {email}"""
+    except Exception as e:
+        _msg = f"{TIMES_MARK} {e}"
+    print (_msg)
+    print ()
+@app.command(name="register")
+def register (label:Annotated[str,typer.Argument(help="unique label that will be used to load the parameters of the database")],
+              auth_file:Annotated[str,typer.Argument(help="path of the auth_file")],
+              default:bool=typer.Option(default=False,help="set the auth_file as default"),
+              path:str=typer.Option(default=REGISTRY_PATH,help="path of the data-transport registry file")):
+    """
+    This function will register an auth-file i.e database connection and assign it a label, 
+    Learn more about auth-file at https://healthcareio.the-phi.com/data-transport
+    """
+    try:
+        transport.registry.set(label=label,auth_file=auth_file, default=default, path=path)
+        _msg = f"""{CHECK_MARK} Successfully added label "{label}" to data-transport registry"""
+    except Exception as e:
+        _msg = f"""{TIMES_MARK} {e}"""
+    print (_msg)
+    
+    pass
 if __name__ == '__main__' :
      app()
-# 	#
-# 	# Load information from the file ...
-# 	if 'help' in SYS_ARGS :
-# 		print (__doc__)
-# 	else:
-# 		try:
-# 			_info = json.loads(open(SYS_ARGS['config']).read())
-# 			if 'index' in SYS_ARGS :
-# 				_index = int(SYS_ARGS['index'])
-# 				_info = [_item for _item in _info if _info.index(_item) == _index]
-# 				pass
-# 			elif 'id' in SYS_ARGS :
-# 				_info = [_item for _item in _info if 'id' in _item and _item['id'] == SYS_ARGS['id']]
-			
-# 			procs = 1 if 'procs' not in SYS_ARGS else int(SYS_ARGS['procs'])
-# 			jobs = transport.factory.instance(provider='etl',info=_info,procs=procs)
-# 			print ([len(jobs),' Jobs are running'])
-# 			N = len(jobs)
-# 			while jobs :
-# 				x = len(jobs)
-# 				jobs = [_job for _job in jobs if _job.is_alive()]
-# 				if x != len(jobs) :
-# 					print ([len(jobs),'... jobs still running'])
-# 				time.sleep(1)
-# 			print ([N,' Finished running'])
-# 		except Exception as e:
-			
-# 			print (e)
-			
+	
 	

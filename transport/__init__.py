@@ -26,8 +26,11 @@ from info import __version__,__author__,__email__,__license__,__app_name__
 from transport.iowrapper import IWriter, IReader, IETL
 from transport.plugins import PluginLoader
 from transport import providers
+import copy 
+from transport import registry
 
 PROVIDERS = {}
+
 def init():
     global PROVIDERS
     for _module in [cloud,sql,nosql,other] :
@@ -45,6 +48,10 @@ def instance (**_args):
     kwargs      These are arguments that are provider/vendor specific
     """
     global PROVIDERS
+    if not registry.isloaded () :
+        registry.load() if 'path' not in _args else registry.load(_args['path'])
+    if 'label' in _args :
+        _info = registry.load(_args['label'])
     if 'auth_file' in _args:
         if os.path.exists(_args['auth_file']) :
             #
