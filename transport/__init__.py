@@ -79,7 +79,7 @@ def instance (**_args):
                 registry.load() if 'path' not in _args else registry.load(_args['path'])
         if 'label' in _args and registry.isloaded():
             _info = registry.get(_args['label'])
-            print(_info)
+            
             if _info :
                 #
                 _args = dict(_args,**_info)
