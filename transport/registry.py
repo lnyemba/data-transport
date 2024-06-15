@@ -22,7 +22,7 @@ def exists (path=REGISTRY_PATH) :
     """
     p = os.path.exists(path)
     q = os.path.exists( os.sep.join([path,REGISTRY_FILE]))
-    print ([p,q, os.sep.join([path,REGISTRY_FILE])])
+    
     return p and q
 def load (_path=REGISTRY_PATH):
     global DATA
