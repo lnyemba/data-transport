@@ -17,4 +17,5 @@ __whatsnew__=f"""version {__version__}, focuses on collaborative environments li
 
     1. simpler syntax to create readers/writers
     2. auth-file registry that can be referenced using a label
+    3. duckdb support
 """

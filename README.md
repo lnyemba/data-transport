@@ -25,6 +25,7 @@ Unlike older versions 2.0 and under, we focus on collaborative environments like
 
     1. Simpler syntax to create reader or writer
     2. auth-file registry that can be referenced using a label
+    3. duckdb support
 
 
 ## Learn More
