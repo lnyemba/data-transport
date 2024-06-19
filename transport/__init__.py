@@ -81,13 +81,15 @@ def instance (**_args):
         if not registry.isloaded () :
             if ('path' in _args and registry.exists(_args['path'] )) or registry.exists():
                 registry.load() if 'path' not in _args else registry.load(_args['path'])
+        _info = {}
         if 'label' in _args and registry.isloaded():
             _info = registry.get(_args['label'])
-            
-            if _info :
-                #
-                # _args = dict(_args,**_info)
-                _args = dict(_info,**_args) #-- we can override the registry parameters with our own arguments
+        else:
+            _info = registry.get()    
+        if _info :
+            #
+            # _args = dict(_args,**_info)
+            _args = dict(_info,**_args) #-- we can override the registry parameters with our own arguments
 
     if 'provider' in _args and _args['provider'] in PROVIDERS :
         _info = PROVIDERS[_args['provider']]
@@ -132,7 +134,7 @@ class get :
     """
     @staticmethod
     def reader (**_args):
-        if not _args :
+        if not _args or 'provider' not in _args:
             _args['label'] = 'default'
         _args['context'] = 'read'
         return instance(**_args)
