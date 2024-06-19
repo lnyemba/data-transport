@@ -19,6 +19,14 @@ Within the virtual environment perform the following :
     pip install git+https://github.com/lnyemba/data-transport.git
 
 
+## What's new
+
+Unlike older versions 2.0 and under, we focus on collaborative environments like jupyter-x servers; apache zeppelin:
+
+    1. Simpler syntax to create reader or writer
+    2. auth-file registry that can be referenced using a label
+
+
 ## Learn More
 
 We have available notebooks with sample code to read/write against mongodb, couchdb, Netezza, PostgreSQL, Google Bigquery, Databricks, Microsoft SQL Server, MySQL ... Visit [data-transport homepage](https://healthcareio.the-phi.com/data-transport)

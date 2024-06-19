@@ -22,7 +22,7 @@ from transport import sql, nosql, cloud, other
 import pandas as pd
 import json
 import os
-from info import __version__,__author__,__email__,__license__,__app_name__
+from info import __version__,__author__,__email__,__license__,__app_name__,__whatsnew__
 from transport.iowrapper import IWriter, IReader, IETL
 from transport.plugins import PluginLoader
 from transport import providers
@@ -38,7 +38,11 @@ def init():
             if _provider_name.startswith('__') or _provider_name == 'common':
                 continue
             PROVIDERS[_provider_name] = {'module':getattr(_module,_provider_name),'type':_module.__name__}
-
+def _getauthfile (path) :
+    f = open(path)
+    _object = json.loads(f.read())
+    f.close()
+    return _object
 def instance (**_args):
     """
     This function returns an object of to read or write from a supported database provider/vendor
@@ -82,7 +86,8 @@ def instance (**_args):
             
             if _info :
                 #
-                _args = dict(_args,**_info)
+                # _args = dict(_args,**_info)
+                _args = dict(_info,**_args) #-- we can override the registry parameters with our own arguments
 
     if 'provider' in _args and _args['provider'] in PROVIDERS :
         _info = PROVIDERS[_args['provider']]

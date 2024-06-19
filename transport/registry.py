@@ -10,6 +10,11 @@ This class manages data from the registry and allows (read only)
 """
 
 REGISTRY_PATH=os.sep.join([os.environ['HOME'],'.data-transport'])
+#
+# This path can be overriden by an environment variable ...
+#
+if 'DATA_TRANSPORT_REGISTRY_PATH' in os.environ :
+    REGISTRY_PATH = os.environ['DATA_TRANSPORT_REGISTRY_PATH']
 REGISTRY_FILE= 'transport-registry.json'
 
 DATA = {}
