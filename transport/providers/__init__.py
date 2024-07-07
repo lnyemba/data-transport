@@ -10,8 +10,11 @@ HTTP='http'
 BIGQUERY	='bigquery'
 FILE 	= 'file'
 ETL = 'etl'
+
 SQLITE = 'sqlite'
 SQLITE3= 'sqlite3'
+DUCKDB = 'duckdb'
+
 REDSHIFT = 'redshift'
 NETEZZA = 'netezza'
 MYSQL = 'mysql'
@@ -41,6 +44,7 @@ PGSQL	= POSTGRESQL
 
 AWS_S3  = 's3'
 RABBIT = RABBITMQ
+
 
 # QLISTENER = 'qlistener'
     

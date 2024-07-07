@@ -52,6 +52,13 @@ class IO:
         if hasattr(self._agent,'apply') :
             return self._agent.apply(_query)
         return None
+    def submit(self,_query):
+        return self.delegate('submit',_query)
+    def delegate(self,_name,_query):
+        if hasattr(self._agent,_name) :
+            pointer = getattr(self._agent,_name)
+            return pointer(_query)
+        return None
 class IReader(IO):
     """
     This is a wrapper for read functionalities

@@ -1,3 +1,7 @@
+"""
+This module uses callback architectural style as a writer to enable user-defined code to handle the output of a reader
+The intent is to allow users to have control over the output of data to handle things like logging, encryption/decryption and other
+"""
 import queue
 from threading import Thread, Lock
 # from transport.common import Reader,Writer

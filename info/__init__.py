@@ -1,6 +1,6 @@
 __app_name__  = 'data-transport'
 __author__ = 'The Phi Technology'
-__version__= '2.0.4'
+__version__= '2.2.0'
 __email__  = "info@the-phi.com"
 __license__=f"""
 Copyright 2010 - 2024, Steve L. Nyemba
@@ -11,4 +11,11 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+"""
+
+__whatsnew__=f"""version {__version__}, focuses on collaborative environments like jupyter-base servers (apache zeppelin; jupyter notebook, jupyterlab, jupyterhub)
+
+    1. simpler syntax to create readers/writers
+    2. auth-file registry that can be referenced using a label
+    3. duckdb support
 """

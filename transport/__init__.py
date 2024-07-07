@@ -22,12 +22,15 @@ from transport import sql, nosql, cloud, other
 import pandas as pd
 import json
 import os
-from info import __version__,__author__,__email__,__license__,__app_name__
+from info import __version__,__author__,__email__,__license__,__app_name__,__whatsnew__
 from transport.iowrapper import IWriter, IReader, IETL
 from transport.plugins import PluginLoader
 from transport import providers
+import copy 
+from transport import registry
 
 PROVIDERS = {}
+
 def init():
     global PROVIDERS
     for _module in [cloud,sql,nosql,other] :
@@ -35,7 +38,11 @@ def init():
             if _provider_name.startswith('__') or _provider_name == 'common':
                 continue
             PROVIDERS[_provider_name] = {'module':getattr(_module,_provider_name),'type':_module.__name__}
-
+def _getauthfile (path) :
+    f = open(path)
+    _object = json.loads(f.read())
+    f.close()
+    return _object
 def instance (**_args):
     """
     This function returns an object of to read or write from a supported database provider/vendor
@@ -45,6 +52,16 @@ def instance (**_args):
     kwargs      These are arguments that are provider/vendor specific
     """
     global PROVIDERS
+    # if not registry.isloaded () :
+    #     if ('path' in _args and registry.exists(_args['path'] )) or registry.exists():
+    #         registry.load() if 'path' not in _args else registry.load(_args['path'])
+    #         print ([' GOT IT'])
+    # if 'label' in _args and registry.isloaded():
+    #     _info = registry.get(_args['label'])
+    #     if _info :
+    #         #
+    #         _args = dict(_args,**_info)
+
     if 'auth_file' in _args:
         if os.path.exists(_args['auth_file']) :
             #
@@ -60,6 +77,20 @@ def instance (**_args):
         else:
             filename = _args['auth_file']
             raise Exception(f" {filename} was not found or is invalid")
+    if 'provider' not in _args and 'auth_file' not in _args :
+        if not registry.isloaded () :
+            if ('path' in _args and registry.exists(_args['path'] )) or registry.exists():
+                registry.load() if 'path' not in _args else registry.load(_args['path'])
+        _info = {}
+        if 'label' in _args and registry.isloaded():
+            _info = registry.get(_args['label'])
+        else:
+            _info = registry.get()    
+        if _info :
+            #
+            # _args = dict(_args,**_info)
+            _args = dict(_info,**_args) #-- we can override the registry parameters with our own arguments
+
     if 'provider' in _args and _args['provider'] in PROVIDERS :
         _info = PROVIDERS[_args['provider']]
         _module = _info['module']
@@ -103,6 +134,8 @@ class get :
     """
     @staticmethod
     def reader (**_args):
+        if not _args or 'provider' not in _args:
+            _args['label'] = 'default'
         _args['context'] = 'read'
         return instance(**_args)
     @staticmethod
@@ -110,6 +143,8 @@ class get :
         """
         This function is a wrapper that will return a writer to a database. It disambiguates the interface
         """
+        if not _args :
+            _args['label'] = 'default'
         _args['context'] = 'write'
         return instance(**_args)
     @staticmethod

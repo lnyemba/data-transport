@@ -3,7 +3,7 @@ This namespace/package wrap the sql functionalities for a certain data-stores
     - netezza, postgresql, mysql and sqlite
     - mariadb, redshift (also included)
 """
-from . import postgresql, mysql, netezza, sqlite, sqlserver
+from . import postgresql, mysql, netezza, sqlite, sqlserver, duckdb
 
 
 #

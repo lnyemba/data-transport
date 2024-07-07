@@ -8,7 +8,7 @@ Mostly data scientists that don't really care about the underlying database and 
 
 1. Familiarity with **pandas data-frames**
 2. Connectivity **drivers** are included
-3. Mining data from various sources
+3. Reading/Writing data from various sources
 4. Useful for data migrations or **ETL**
 
 
@@ -17,6 +17,15 @@ Mostly data scientists that don't really care about the underlying database and 
 Within the virtual environment perform the following :
 
     pip install git+https://github.com/lnyemba/data-transport.git
+
+
+## What's new
+
+Unlike older versions 2.0 and under, we focus on collaborative environments like jupyter-x servers; apache zeppelin:
+
+    1. Simpler syntax to create reader or writer
+    2. auth-file registry that can be referenced using a label
+    3. duckdb support
 
 
 ## Learn More
