@@ -18,6 +18,11 @@ Within the virtual environment perform the following :
 
     pip install git+https://github.com/lnyemba/data-transport.git
 
+## Features
+
+    - read/write from over a dozen databases
+    - run ETL jobs seamlessly
+    - scales and integrates into shared environments like apache zeppelin; jupyterhub; SageMaker; ...
 
 ## What's new
 
