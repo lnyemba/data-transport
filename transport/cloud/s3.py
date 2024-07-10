@@ -117,15 +117,18 @@ class Writer(s3) :
 		"""
 		This function will write the data to the s3 bucket, files can be either csv, or json formatted files
 		"""
+		content = 'text/plain'
 		if type(_data) == pd.DataFrame :
 			_stream = _data.to_csv(index=False)
+			content = 'text/csv'
 		elif type(_data) == dict :
 			_stream = json.dumps(_data)
+			content = 'application/json'
 		else:
 			_stream = _data
 		file = StringIO(_stream)
 		bucket = self._bucket_name if 'bucket' not in _args else _args['bucket']
 		file_name = self._file_name if 'file' not in _args else _args['file']
-		self._client.put_object(Bucket=bucket, Key = file_name, Body=_stream)
+		self._client.put_object(Bucket=bucket, Key = file_name, Body=_stream,ContentType=content)
 		pass
 		
