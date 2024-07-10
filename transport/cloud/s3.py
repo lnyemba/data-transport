@@ -3,7 +3,10 @@ Data Transport - 1.0
 Steve L. Nyemba, The Phi Technology LLC
 
 This file is a wrapper around s3 bucket provided by AWS for reading and writing content
+TODO:
+	- Address limitations that will properly read csv if it is stored with content type text/csv
 """
+
 from datetime import datetime
 import boto3
 # from boto.s3.connection import S3Connection, OrdinaryCallingFormat
