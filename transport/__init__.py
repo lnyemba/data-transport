@@ -134,7 +134,7 @@ class get :
     """
     @staticmethod
     def reader (**_args):
-        if not _args or 'provider' not in _args:
+        if not _args or ('provider' not in _args and 'label' not in _args):
             _args['label'] = 'default'
         _args['context'] = 'read'
         return instance(**_args)
@@ -143,7 +143,7 @@ class get :
         """
         This function is a wrapper that will return a writer to a database. It disambiguates the interface
         """
-        if not _args :
+        if not _args or ('provider' not in _args and 'label' not in _args):
             _args['label'] = 'default'
         _args['context'] = 'write'
         return instance(**_args)
