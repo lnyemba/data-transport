@@ -33,6 +33,8 @@ class Mongo :
             :password   password for current user
         """
         self.host = 'localhost' if 'host' not in args else args['host']
+        if ':' not in self.host and 'port' in args :
+            self.host = ':'.join([self.host,str(args['port'])])
         self.mechanism= 'SCRAM-SHA-256' if 'mechanism' not in args else args['mechanism']
         # authSource=(args['authSource'] if 'authSource' in args else self.dbname)
         self._lock = False if 'lock' not in args else args['lock']
