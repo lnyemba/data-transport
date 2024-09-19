@@ -1,6 +1,6 @@
 __app_name__  = 'data-transport'
 __author__ = 'The Phi Technology'
-__version__= '2.2.4'
+__version__= '2.2.6'
 __email__  = "info@the-phi.com"
 __license__=f"""
 Copyright 2010 - 2024, Steve L. Nyemba
