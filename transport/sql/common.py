@@ -3,6 +3,8 @@ This file encapsulates common operations associated with SQL databases via SQLAl
 
 """
 import sqlalchemy as sqa
+from sqlalchemy import text 
+
 import pandas as pd
 
 class Base:
@@ -56,7 +58,15 @@ class Base:
 
         @TODO: Execution of stored procedures
         """
-        return pd.read_sql(sql,self._engine) if sql.lower().startswith('select') or sql.lower().startswith('with') else None
+        if sql.lower().startswith('select') or sql.lower().startswith('with') :
+
+            return pd.read_sql(sql,self._engine) 
+        else:
+            _handler = self._engine.connect()
+            _handler.execute(text(sql))
+            _handler.commit ()
+            _handler.close()
+        return None
 
 class SQLBase(Base):
     def __init__(self,**_args):
