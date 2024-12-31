@@ -36,9 +36,10 @@ from enum import Enum
 from rich import print
 
 app = typer.Typer()
-app_x = typer.Typer()
-app_i = typer.Typer()
-app_r = typer.Typer()
+app_e = typer.Typer()   #-- handles etl (run, generate)
+app_x = typer.Typer()   #-- handles plugins (list,add, test)
+app_i = typer.Typer()   #-- handles information (version, license)
+app_r = typer.Typer()   #-- handles registry    
 REGISTRY_PATH=os.sep.join([os.environ['HOME'],'.data-transport'])
 REGISTRY_FILE= 'transport-registry.json'
 CHECK_MARK = '[ [green]\u2713[/green] ]' #' '.join(['[',colored(u'\u2713', 'green'),']'])
@@ -54,7 +55,7 @@ def wait (jobs):
     while jobs :
             jobs = [pthread for pthread in jobs if pthread.is_alive()]
 
-@app.command(name="etl")
+@app_e.command(name="run")
 def apply (path:Annotated[str,typer.Argument(help="path of the configuration file")],
         index:int = typer.Option(default= None, help="index of the item of interest, otherwise everything in the file will be processed"),
         batch:int = typer.Option(default=5, help="The number of parallel processes to run at once")
@@ -113,7 +114,7 @@ def info():
     print ()
     print (transport.__license__)
 
-@app.command()
+@app_e.command()
 def generate (path:Annotated[str,typer.Argument(help="path of the ETL configuration file template (name included)")]):
     """
     This function will generate a configuration template to give a sense of how to create one
@@ -206,6 +207,7 @@ def registry_test (key):
         print (pd.DataFrame([_item]))
     else:
         print (f"{TIMES_MARK} unable to load \033[1m{key}\033[0m. Make sure it is registered")
+app.add_typer(app_e,name='etl',help="This function will run etl or generate a template etl configuration file")
 app.add_typer(app_r,name='registry',help='This function allows labeling database access information')
 app.add_typer(app_i,name="info",help="This function will print either license or supported database technologies")
 app.add_typer(app_x, name="plugins",help="This function enables add/list/test of plugins in the registry")
