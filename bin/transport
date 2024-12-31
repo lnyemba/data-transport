@@ -24,19 +24,25 @@ from multiprocessing import Process
 
 import os
 import transport
-from transport import etl
+# from transport import etl
+from transport.iowrapper import IETL
 # from transport import providers
 import typer
 from typing_extensions import Annotated
 from typing import Optional
 import time
 from termcolor import colored
+from enum import Enum
+from rich import print
 
 app = typer.Typer()
+app_x = typer.Typer()
+app_i = typer.Typer()
+app_r = typer.Typer()
 REGISTRY_PATH=os.sep.join([os.environ['HOME'],'.data-transport'])
 REGISTRY_FILE= 'transport-registry.json'
-CHECK_MARK = ' '.join(['[',colored(u'\u2713', 'green'),']'])
-TIMES_MARK= ' '.join(['[',colored(u'\u2717','red'),']'])
+CHECK_MARK = '[ [green]\u2713[/green] ]' #' '.join(['[',colored(u'\u2713', 'green'),']'])
+TIMES_MARK= '[ [red]\u2717[/red] ]' #' '.join(['[',colored(u'\u2717','red'),']'])
 # @app.command()
 def help() :     
 	print (__doc__)
@@ -44,10 +50,15 @@ def wait(jobs):
     while jobs :
         jobs = [thread for thread in jobs if thread.is_alive()]
         time.sleep(1)
+def wait (jobs):
+    while jobs :
+            jobs = [pthread for pthread in jobs if pthread.is_alive()]
 
-@app.command(name="apply")
+@app.command(name="etl")
 def apply (path:Annotated[str,typer.Argument(help="path of the configuration file")],
-        index:int = typer.Option(default= None, help="index of the item of interest, otherwise everything in the file will be processed")):
+        index:int = typer.Option(default= None, help="index of the item of interest, otherwise everything in the file will be processed"),
+        batch:int = typer.Option(default=5, help="The number of parallel processes to run at once")
+        ):
     """
     This function applies data transport ETL feature to read data from one source to write it one or several others
     """
@@ -56,23 +67,34 @@ def apply (path:Annotated[str,typer.Argument(help="path of the configuration fil
         file = open(path)
         _config = json.loads (file.read() )
         file.close()
-        if index :
+        if index is not None:            
             _config = [_config[ int(index)]]
-        jobs = []            
+        jobs = []          
         for _args in _config :
-            pthread = etl.instance(**_args) #-- automatically starts the process
+            # pthread = etl.instance(**_args) #-- automatically starts the process
+            def bootup ():
+                _worker = IETL(**_args)
+                _worker.run()
+            pthread = Process(target=bootup)
+            pthread.start()
             jobs.append(pthread)
+            if len(jobs) == batch :
+                wait(jobs)
+                jobs = []
+        
+        if jobs :
+            wait (jobs)
         #
-        # @TODO: Log the number of processes started and estimated time
-        while jobs :
-             jobs = [pthread for pthread in jobs if pthread.is_alive()]
-             time.sleep(1)
+        # @TODO: Log the number of processes started and estfrom transport impfrom transport impimated time
+        # while jobs :
+        #      jobs = [pthread for pthread in jobs if pthread.is_alive()]
+        #      time.sleep(1)
         #
         # @TODO: Log the job termination here ...
-@app.command(name="providers")
+@app_i.command(name="supported")
 def supported (format:Annotated[str,typer.Argument(help="format of the output, supported formats are (list,table,json)")]="table") :
     """
-    This function will print supported providers/vendors and their associated classifications
+    This function will print supported database technologies
     """
     _df =  (transport.supported())
     if format in ['list','json'] :
@@ -81,13 +103,14 @@ def supported (format:Annotated[str,typer.Argument(help="format of the output, s
          print (_df)
     print ()
 
-@app.command()
-def version():
+@app_i.command(name="license")
+def info():
     """
     This function will display version and license information
     """
 
-    print (transport.__app_name__,'version ',transport.__version__)
+    print (f'[bold] {transport.__app_name__} ,version {transport.__version__}[/bold]')
+    print ()
     print (transport.__license__)
 
 @app.command()
@@ -99,18 +122,18 @@ def generate (path:Annotated[str,typer.Argument(help="path of the ETL configurat
             {
                 "source":{"provider":"http","url":"https://raw.githubusercontent.com/codeforamerica/ohana-api/master/data/sample-csv/addresses.csv"},
                 "target":
-            [{"provider":"files","path":"addresses.csv","delimiter":","},{"provider":"sqlite","database":"sample.db3","table":"addresses"}]
+            [{"provider":"files","path":"addresses.csv","delimiter":","},{"provider":"sqlite3","database":"sample.db3","table":"addresses"}]
             }
             ]
     file = open(path,'w')
     file.write(json.dumps(_config))
     file.close()
-    print (f"""{CHECK_MARK} Successfully generated a template ETL file at {path}""" )
+    print (f"""{CHECK_MARK} Successfully generated a template ETL file at [bold]{path}[/bold]""" )
     print ("""NOTE: Each line (source or target) is the content of an auth-file""")
 
 
 
-@app.command(name="init")
+@app_r.command(name="reset")
 def initregistry (email:Annotated[str,typer.Argument(help="email")],
                   path:str=typer.Option(default=REGISTRY_PATH,help="path or location of the configuration file"), 
                   override:bool=typer.Option(default=False,help="override existing configuration or not")):
@@ -120,24 +143,24 @@ def initregistry (email:Annotated[str,typer.Argument(help="email")],
     """
     try:
         transport.registry.init(email=email, path=path, override=override)
-        _msg = f"""{CHECK_MARK} Successfully wrote configuration to {path} from {email}"""
+        _msg = f"""{CHECK_MARK} Successfully wrote configuration to [bold]{path}[/bold] from [bold]{email}[/bold]"""
     except Exception as e:
         _msg = f"{TIMES_MARK} {e}"
     print (_msg)
     print ()
-@app.command(name="register")
+@app_r.command(name="add")
 def register (label:Annotated[str,typer.Argument(help="unique label that will be used to load the parameters of the database")],
               auth_file:Annotated[str,typer.Argument(help="path of the auth_file")],
               default:bool=typer.Option(default=False,help="set the auth_file as default"),
               path:str=typer.Option(default=REGISTRY_PATH,help="path of the data-transport registry file")):
     """
-    This function will register an auth-file i.e database connection and assign it a label, 
-    Learn more about auth-file at https://healthcareio.the-phi.com/data-transport
+    This function add  a database label for a given auth-file. which allows access to the database using a label of your choice.
+    
     """
     try:
         if transport.registry.exists(path) :
             transport.registry.set(label=label,auth_file=auth_file, default=default, path=path)
-            _msg = f"""{CHECK_MARK} Successfully added label "{label}" to data-transport registry"""
+            _msg = f"""{CHECK_MARK} Successfully added label [bold]"{label}"[/bold] to data-transport registry"""
         else:
             _msg = f"""{TIMES_MARK} Registry is not initialized, please initialize the registry (check help)"""
     except Exception as e:
@@ -145,6 +168,47 @@ def register (label:Annotated[str,typer.Argument(help="unique label that will be
     print (_msg)
     
     pass
+@app_x.command(name='add') 
+def register_plugs (
+    alias:Annotated[str,typer.Argument(help="unique alias fo the file being registered")],
+    path:Annotated[str,typer.Argument(help="path of the python file, that contains functions")]
+    ):
+    """
+    This function will register a file and the functions within will be refrences <alias>.<function> in a configuration file
+    """
+    transport.registry.plugins.init()
+    _log = transport.registry.plugins.add(alias,path)
+    _mark = TIMES_MARK if not _log else CHECK_MARK
+    _msg  = f"""Could NOT add the [bold]{alias}[/bold]to the registry""" if not _log else f""" successfully added {alias}, {len(_log)} functions added"""
+    print (f"""{_mark} {_msg}""")
+@app_x.command(name="list") 
+def registry_list ():
+
+    transport.registry.plugins.init()
+    _d = []
+    for _alias in transport.registry.plugins._data :
+        _data = transport.registry.plugins._data[_alias]
+        _d +=  [{'alias':_alias,"plugin-count":len(_data['content']),'e.g':'@'.join([_alias,_data['content'][0]]),'plugins':json.dumps(_data['content'])}]
+    if _d:
+        print (pd.DataFrame(_d))
+    else:
+        print (f"""{TIMES_MARK}, Plugin registry is not available or needs initialization""")
+
+@app_x.command(name="test") 
+def registry_test (key):
+    """
+    This function allows to test syntax for a plugin i.e in terms of alias@function
+    """
+    _item = transport.registry.plugins.has(key=key)
+    if _item :
+        del _item['pointer']
+        print (f"""{CHECK_MARK} successfully loaded \033[1m{key}\033[0m found, version {_item['version']}""")
+        print (pd.DataFrame([_item]))
+    else:
+        print (f"{TIMES_MARK} unable to load \033[1m{key}\033[0m. Make sure it is registered")
+app.add_typer(app_r,name='registry',help='This function allows labeling database access information')
+app.add_typer(app_i,name="info",help="This function will print either license or supported database technologies")
+app.add_typer(app_x, name="plugins",help="This function enables add/list/test of plugins in the registry")
 if __name__ == '__main__' :
      app()
 	

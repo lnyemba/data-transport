@@ -220,6 +220,8 @@ def init (email,path=REGISTRY_PATH,override=False,_file=REGISTRY_FILE):
 def lookup (label):
     global DATA
     return label in DATA
+has = lookup 
+
 def get (label='default') :
     global DATA
     return copy.copy(DATA[label]) if label in DATA else {}

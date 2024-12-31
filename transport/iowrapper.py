@@ -5,7 +5,7 @@ NOTE: Plugins are converted to a pipeline, so we apply a pipeline when reading o
         - upon initialization we will load plugins
         - on read/write we apply a pipeline (if passed as an argument)
 """    
-from transport.plugins import plugin, PluginLoader
+from transport.plugins import Plugin, PluginLoader
 import transport
 from transport import providers
 from multiprocessing import Process
@@ -16,7 +16,10 @@ class IO:
     """
     Base wrapper class for read/write and support for logs
     """
-    def __init__(self,_agent,plugins):
+    def __init__(self,**_args):
+        _agent  = _args['agent']
+        plugins = _args['plugins'] if 'plugins' not in _args else None
+
         self._agent = _agent
         if plugins :
             self._init_plugins(plugins)
@@ -63,8 +66,9 @@ class IReader(IO):
     """
     This is a wrapper for read functionalities
     """
-    def __init__(self,_agent,pipeline=None):
-        super().__init__(_agent,pipeline)
+    def __init__(self,**_args):
+        super().__init__(**_args)
+        
     def read(self,**_args):
         if 'plugins' in _args :
             self._init_plugins(_args['plugins'])
@@ -75,8 +79,8 @@ class IReader(IO):
         # output data 
         return _data
 class IWriter(IO):
-    def __init__(self,_agent,pipeline=None):
-        super().__init__(_agent,pipeline)  
+    def __init__(self,**_args): #_agent,pipeline=None):
+        super().__init__(**_args) #_agent,pipeline)  
     def write(self,_data,**_args):
         if 'plugins' in _args :
             self._init_plugins(_args['plugins'])
@@ -94,7 +98,7 @@ class IETL(IReader) :
     This class performs an ETL operation by ineriting a read and adding writes as pipeline functions
     """
     def __init__(self,**_args):
-        super().__init__(transport.get.reader(**_args['source']))
+        super().__init__(agent=transport.get.reader(**_args['source']),plugins=None)
         if 'target' in _args:
             self._targets = _args['target'] if type(_args['target']) == list else [_args['target']]
         else:
@@ -110,6 +114,8 @@ class IETL(IReader) :
             self.post(_data,**_kwargs)
 
         return _data
+    def run(self) :
+        return self.read()
     def post (self,_data,**_args) :
         """
         This function returns an instance of a process that will perform the write operation

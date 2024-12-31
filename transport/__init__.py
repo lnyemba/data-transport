@@ -18,7 +18,7 @@ Source Code is available under MIT License:
 """
 import numpy as np
 
-from transport import sql, nosql, cloud, other
+from transport import sql, nosql, cloud, other, warehouse
 import pandas as pd
 import json
 import os
@@ -28,21 +28,26 @@ from transport.plugins import PluginLoader
 from transport import providers
 import copy 
 from transport import registry
-
+from transport.plugins import Plugin 
 PROVIDERS = {}
 
 def init():
     global PROVIDERS
-    for _module in [cloud,sql,nosql,other] :
+    for _module in [cloud,sql,nosql,other,warehouse] :
         for _provider_name in dir(_module) :
             if _provider_name.startswith('__') or _provider_name == 'common':
                 continue
             PROVIDERS[_provider_name] = {'module':getattr(_module,_provider_name),'type':_module.__name__}
-def _getauthfile (path) :
-    f = open(path)
-    _object = json.loads(f.read())
-    f.close()
-    return _object
+    #
+    # loading the registry
+    if not registry.isloaded() :
+        registry.load()
+
+# def _getauthfile (path) :
+#     f = open(path)
+#     _object = json.loads(f.read())
+#     f.close()
+#     return _object
 def instance (**_args):
     """
     This function returns an object of to read or write from a supported database provider/vendor
@@ -52,16 +57,7 @@ def instance (**_args):
     kwargs      These are arguments that are provider/vendor specific
     """
     global PROVIDERS
-    # if not registry.isloaded () :
-    #     if ('path' in _args and registry.exists(_args['path'] )) or registry.exists():
-    #         registry.load() if 'path' not in _args else registry.load(_args['path'])
-    #         print ([' GOT IT'])
-    # if 'label' in _args and registry.isloaded():
-    #     _info = registry.get(_args['label'])
-    #     if _info :
-    #         #
-    #         _args = dict(_args,**_info)
-
+    
     if 'auth_file' in _args:
         if os.path.exists(_args['auth_file']) :
             #
@@ -78,7 +74,7 @@ def instance (**_args):
             filename = _args['auth_file']
             raise Exception(f" {filename} was not found or is invalid")
     if 'provider' not in _args and 'auth_file' not in _args :
-        if not registry.isloaded () :
+        if not registry.isloaded () : 
             if ('path' in _args and registry.exists(_args['path'] )) or registry.exists():
                 registry.load() if 'path' not in _args else registry.load(_args['path'])
         _info = {}
@@ -87,8 +83,6 @@ def instance (**_args):
         else:
             _info = registry.get()    
         if _info :
-            #
-            # _args = dict(_args,**_info)
             _args = dict(_info,**_args) #-- we can override the registry parameters with our own arguments
 
     if 'provider' in _args and _args['provider'] in PROVIDERS :
@@ -119,8 +113,32 @@ def instance (**_args):
         #         for _delegate in _params :
         #             loader.set(_delegate)
         
-        loader = None if 'plugins' not in _args else _args['plugins']
-        return IReader(_agent,loader) if _context == 'read' else IWriter(_agent,loader)
+        _plugins = None if 'plugins' not in _args else _args['plugins']
+        
+        # if registry.has('logger') :
+        #     _kwa = registry.get('logger')
+        #     _lmodule = getPROVIDERS[_kwa['provider']]
+            
+        if ( ('label' in _args and _args['label'] != 'logger') and registry.has('logger')):
+            #
+            # We did not request label called logger, so we are setting up a logger if it is specified in the registry
+            #
+            _kwargs = registry.get('logger')
+            _kwargs['context']  = 'write'
+            _kwargs['table']    =_module.__name__.split('.')[-1]+'_logs'
+            # _logger = instance(**_kwargs)
+            _module = PROVIDERS[_kwargs['provider']]['module']
+            _logger = getattr(_module,'Writer')
+            _logger = _logger(**_kwargs)
+        else:
+            _logger = None
+        
+        _kwargs = {'agent':_agent,'plugins':_plugins,'logger':_logger}
+        if 'args' in _args :
+            _kwargs['args'] = _args['args']
+        # _datatransport =  IReader(_agent,_plugins,_logger) if _context == 'read' else IWriter(_agent,_plugins,_logger)
+        _datatransport =  IReader(**_kwargs) if _context == 'read' else IWriter(**_kwargs)
+        return _datatransport
 
     else:
         #
@@ -137,7 +155,14 @@ class get :
         if not _args or ('provider' not in _args and 'label' not in _args):
             _args['label'] = 'default'
         _args['context'] = 'read'
-        return instance(**_args)
+        # return instance(**_args)
+        # _args['logger'] = instance(**{'label':'logger','context':'write','table':'logs'})
+        
+        _handler =  instance(**_args)
+        # _handler.setLogger(get.logger())
+        return _handler
+
+    
     @staticmethod
     def writer(**_args):
         """
@@ -146,10 +171,26 @@ class get :
         if not _args or ('provider' not in _args and 'label' not in _args):
             _args['label'] = 'default'
         _args['context'] = 'write'
-        return instance(**_args)
+        # _args['logger'] = instance(**{'label':'logger','context':'write','table':'logs'})
+
+        _handler =  instance(**_args)
+        #
+        # Implementing logging with the 'eat-your-own-dog-food' approach
+        # Using dependency injection to set the logger (problem with imports)
+        #
+        # _handler.setLogger(get.logger())
+        return _handler
+    @staticmethod
+    def logger ():
+        if registry.has('logger') :
+            _args = registry.get('logger')
+            _args['context']  = 'write'
+            return instance(**_args)
+        return None
     @staticmethod
     def etl (**_args):
         if 'source' in _args and 'target' in _args :
+
             return IETL(**_args)
         else:
             raise Exception ("Malformed input found, object must have both 'source' and 'target' attributes")
