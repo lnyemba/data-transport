@@ -109,8 +109,10 @@ class IETL(IReader) :
         self._hasParentProcess = False if 'hasParentProcess' not in _args else _args['hasParentProcess']
     def read(self,**_args):
         _data = super().read(**_args)
-
+        _schema = super().meta()
         for _kwargs in self._targets :
+            if _schema :
+                _kwargs['schema'] = _schema
             self.post(_data,**_kwargs)
 
         return _data
@@ -122,5 +124,8 @@ class IETL(IReader) :
         :_args  parameters associated with writer object
         """
         writer = transport.get.writer(**_args)
-        writer.write(_data)
+        if 'schema' in _args :
+            writer.write(_data,schema=_args['schema'])
+        else:
+            writer.write(_data)
         writer.close()
