@@ -59,6 +59,9 @@ class PluginLoader :
 
         pass
     def load (self,**_args):
+        """
+        This function loads a plugin
+        """
         self._modules = {}
         self._names = []
         path = _args ['path']
