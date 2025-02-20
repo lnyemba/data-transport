@@ -13,7 +13,13 @@ class Base:
         self._port = None
         self._database = _args['database']
         self._table = _args['table'] if 'table' in _args else None
-        self._engine= sqa.create_engine(self._get_uri(**_args),future=True)
+        _uri = self._get_uri(**_args)
+        if type(_uri) == str :
+            self._engine= sqa.create_engine(_uri,future=True)
+        else:
+            
+            _uri,_kwargs = _uri
+            self._engine= sqa.create_engine(_uri,**_kwargs,future=True)
     def _set_uri(self,**_args) :
         """
         :provider   provider
@@ -64,8 +70,8 @@ class Base:
 
         @TODO: Execution of stored procedures
         """
-        if sql.lower().startswith('select') or sql.lower().startswith('with') :
-
+        if sql.strip().lower().startswith('select') or sql.strip().lower().startswith('with') or sql.strip().startswith('show'):
+            print (self._engine)
             return pd.read_sql(sql,self._engine) 
         else:
             _handler = self._engine.connect()
