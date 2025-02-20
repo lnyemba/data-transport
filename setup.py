@@ -5,14 +5,14 @@ from setuptools import setup, find_packages
 import os
 import sys
 # from version import __version__,__author__
-from info import __version__, __author__,__app_name__,__license__
+from info import __version__, __author__,__app_name__,__license__,__edition___
 
 
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read() 
 args    = {
     "name":__app_name__,
-    "version":__version__,
+    "version":'-'.join([__version__,__edition__]),
     "author":__author__,"author_email":"info@the-phi.com",
     "license":__license__,
     # "packages":["transport","info","transport/sql"]},
