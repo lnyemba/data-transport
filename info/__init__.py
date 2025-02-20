@@ -14,9 +14,10 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
 
 """
 
-__whatsnew__=f"""version {__version__}, focuses on collaborative environments like jupyter-base servers (apache zeppelin; jupyter notebook, jupyterlab, jupyterhub)
+__whatsnew__=f"""version {__version__}, 
+1. Added support for read/write logs as well as plugins (when applied)
+2. Bug fix with duckdb (adding readonly) for readers because there are issues with threads & processes
+3. support for streaming data, important to use this with large volumes of data
 
-    1. simpler syntax to create readers/writers
-    2. auth-file registry that can be referenced using a label
-    3. duckdb support
+
 """
