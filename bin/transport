@@ -103,14 +103,22 @@ def supported (format:Annotated[str,typer.Argument(help="format of the output, s
     else:
          print (_df)
     print ()
-
+@app_i.command(name="version")
+def version ():
+    """
+    This function will return the version of the data-transport
+    """
+    print()
+    print (f'[bold] {transport.__app_name__} ,[blue] {transport.__edition__} edition [/blue], version {transport.__version__}[/bold]')
+    print ()
+ 
 @app_i.command(name="license")
 def info():
     """
     This function will display version and license information
     """
-
-    print (f'[bold] {transport.__app_name__} ,version {transport.__version__}[/bold]')
+    print()
+    print (f'[bold] {transport.__app_name__} ,{transport.__edition__}, version {transport.__version__}[/bold]')
     print ()
     print (transport.__license__)
 
