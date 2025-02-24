@@ -45,12 +45,12 @@ class IO:
     def close(self):
         if hasattr(self._agent,'close') :
             self._agent.close()
-    def apply(self):
-        """
-        applying pre/post conditions given a pipeline expression
-        """
-        for _pointer in self._plugins :
-            _data = _pointer(_data)
+    # def apply(self):
+    #     """
+    #     applying pre/post conditions given a pipeline expression
+    #     """
+    #     for _pointer in self._plugins :
+    #         _data = _pointer(_data)
     def apply(self,_query):
         if hasattr(self._agent,'apply') :
             return self._agent.apply(_query)
