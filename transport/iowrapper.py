@@ -19,7 +19,7 @@ class IO:
     """
     def __init__(self,**_args):
         _agent  = _args['agent']
-        plugins = _args['plugins'] if 'plugins' not in _args else None
+        plugins = _args['plugins'] if 'plugins' in _args else None
 
         self._agent = _agent
         self._ixloader = plugin_ix.Loader () #--
