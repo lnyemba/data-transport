@@ -11,6 +11,7 @@ from transport import providers
 from multiprocessing import Process
 import time
 
+import plugin_ix 
 
 class IO:
     """
@@ -21,20 +22,25 @@ class IO:
         plugins = _args['plugins'] if 'plugins' not in _args else None
 
         self._agent = _agent
+        self._ixloader = plugin_ix.Loader () #--
         if plugins :
-            self._init_plugins(plugins)
-        else:
-            self._plugins = None
+            self.init_plugins(plugins)
+        #     for _ref in plugins :
+        #         self._ixloader.set(_ref)
+        # if plugins :
+        #     self._init_plugins(plugins)
+        # else:
+        #     self._plugins = None
         
-    def _init_plugins(self,_args):
-        """
-        This function will load pipelined functions as a plugin loader
-        """
-        if 'path' in _args and 'names' in _args :
-            self._plugins = PluginLoader(**_args)
-        else:
-            self._plugins = PluginLoader()
-            [self._plugins.set(_pointer) for _pointer in _args]
+    # def _init_plugins(self,_args):
+    #     """
+    #     This function will load pipelined functions as a plugin loader
+    #     """
+    #     if 'path' in _args and 'names' in _args :
+    #         self._plugins = PluginLoader(**_args)
+    #     else:
+    #         self._plugins = PluginLoader()
+    #         [self._plugins.set(_pointer) for _pointer in _args]
         #
         # @TODO: We should have a way to log what plugins are loaded and ready to use
     def meta (self,**_args):
@@ -62,6 +68,10 @@ class IO:
             pointer = getattr(self._agent,_name)
             return pointer(_query)
         return None
+    def init_plugins(self,plugins):
+        for _ref in plugins :
+            self._ixloader.set(_ref)
+
 class IReader(IO):
     """
     This is a wrapper for read functionalities
@@ -71,22 +81,28 @@ class IReader(IO):
         
     def read(self,**_args):
         if 'plugins' in _args :
-            self._init_plugins(_args['plugins'])
+            self.init_plugins(_args['plugins'])
+
         _data = self._agent.read(**_args)
-        if self._plugins and self._plugins.ratio() > 0 :
-            _data = self._plugins.apply(_data)
+        # if self._plugins and self._plugins.ratio() > 0 :
+        #     _data = self._plugins.apply(_data)
         #
         # output data 
+        
+        #
+        # applying the the design pattern 
+        _data = self._ixloader.visitor(_data)
         return _data
 class IWriter(IO):
     def __init__(self,**_args): #_agent,pipeline=None):
         super().__init__(**_args) #_agent,pipeline)  
     def write(self,_data,**_args):
+        # if 'plugins' in _args :
+        #     self._init_plugins(_args['plugins'])
         if 'plugins' in _args :
-            self._init_plugins(_args['plugins'])
-        if self._plugins and self._plugins.ratio() > 0 :
-            _data = self._plugins.apply(_data)
+            self.init_plugins(_args['plugins'])
 
+        self._ixloader.visitor(_data)
         self._agent.write(_data,**_args)
 
 #

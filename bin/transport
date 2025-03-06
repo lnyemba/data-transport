@@ -34,6 +34,8 @@ import time
 from termcolor import colored
 from enum import Enum
 from rich import print
+import plugin_ix as pix
+
 
 app = typer.Typer()
 app_e = typer.Typer()   #-- handles etl (run, generate)
@@ -147,7 +149,7 @@ def initregistry (email:Annotated[str,typer.Argument(help="email")],
                   path:str=typer.Option(default=REGISTRY_PATH,help="path or location of the configuration file"), 
                   override:bool=typer.Option(default=False,help="override existing configuration or not")):
     """
-    This functiion will initialize the registry and have both application and calling code loading the database parameters by a label
+    This functiion will initialize the data-transport registry and have both application and calling code loading the database parameters by a label
 
     """
     try:
@@ -179,42 +181,62 @@ def register (label:Annotated[str,typer.Argument(help="unique label that will be
     pass
 @app_x.command(name='add') 
 def register_plugs (
-    alias:Annotated[str,typer.Argument(help="unique alias fo the file being registered")],
-    path:Annotated[str,typer.Argument(help="path of the python file, that contains functions")]
+    alias:Annotated[str,typer.Argument(help="unique function name within a file")],
+    path:Annotated[str,typer.Argument(help="path of the python file, that contains functions")],
+    folder:str=typer.Option(default=REGISTRY_PATH,help="path of the data-transport registry folder"),
+    
     ):
     """
-    This function will register a file and the functions within will be refrences <alias>.<function> in a configuration file
+    This function will register a file and the functions within we are interested in using
     """
-    transport.registry.plugins.init()
-    _log = transport.registry.plugins.add(alias,path)
+    if ',' in alias :
+        alias = [_name.strip() for _name in alias.split(',') if _name.strip() != '' ] 
+    else:
+        alias = [alias.strip()]
+    _pregistry  = pix.Registry(folder=folder,plugin_folder='plugins/code')
+    _log = _pregistry.set(path,alias)
+    # transport.registry.plugins.init()
+    # _log = transport.registry.plugins.add(alias,path)
     _mark = TIMES_MARK if not _log else CHECK_MARK
-    _msg  = f"""Could NOT add the [bold]{alias}[/bold]to the registry""" if not _log else f""" successfully added {alias}, {len(_log)} functions added"""
+    _msg  = f"""Could NOT add the [bold]{alias}[/bold]to the registry""" if not _log else f""" successfully added {alias}, {_log} functions registered"""
     print (f"""{_mark} {_msg}""")
 @app_x.command(name="list") 
-def registry_list ():
-
-    transport.registry.plugins.init()
-    _d = []
-    for _alias in transport.registry.plugins._data :
-        _data = transport.registry.plugins._data[_alias]
-        _d +=  [{'alias':_alias,"plugin-count":len(_data['content']),'e.g':'@'.join([_alias,_data['content'][0]]),'plugins':json.dumps(_data['content'])}]
-    if _d:
-        print (pd.DataFrame(_d))
+def registry_list (folder:str=typer.Option(default=REGISTRY_PATH,help="path of the data-transport configuration folder")):
+    """
+    This function will list all the plugins (python functions/files) that are registered and can be reused
+    """
+    _pregistry  = pix.Registry(folder=folder)
+    _df = _pregistry.stats()
+    if _df.empty :
+        print (f"{TIMES_MARK} registry at {folder} is not ready")
     else:
-        print (f"""{TIMES_MARK}, Plugin registry is not available or needs initialization""")
+        print (_df)
 
+@app_x.command ("has")
+def registry_has (alias:Annotated[str,typer.Argument(help="alias of a function function@file or file.function")],
+                  folder:str=typer.Option(default=REGISTRY_PATH,help="path of the data-transport registry file")) :
+    _pregistry  = pix.Registry(folder=folder)
+    if _pregistry.has(alias) :
+        _msg = f"{CHECK_MARK} {alias} was [bold] found [/bold] in registry "
+    else:
+        _msg = f"{TIMES_MARK} {alias} was [bold] NOT found [/bold] in registry "
+    print (_msg)
+    
 @app_x.command(name="test") 
-def registry_test (key):
+def registry_test (alias:Annotated[str,typer.Argument(help="alias of a function function@file or file.function")],
+                  folder:str=typer.Option(default=REGISTRY_PATH,help="path of the data-transport registry folder")) :
+    _pregistry  = pix.Registry(folder=folder)
     """
     This function allows to test syntax for a plugin i.e in terms of alias@function
     """
-    _item = transport.registry.plugins.has(key=key)
-    if _item :
-        del _item['pointer']
-        print (f"""{CHECK_MARK} successfully loaded \033[1m{key}\033[0m found, version {_item['version']}""")
-        print (pd.DataFrame([_item]))
+    # _item = transport.registry.plugins.has(key=key)
+    _pointer = _pregistry.get(alias) if _pregistry.has(alias) else None
+        
+    if _pointer:
+        print (f"""{CHECK_MARK} successfully loaded [bold] {alias}[/bold] found in {folder}""")
+        
     else:
-        print (f"{TIMES_MARK} unable to load \033[1m{key}\033[0m. Make sure it is registered")
+        print (f"{TIMES_MARK} unable to load {alias}. Make sure it is registered")
 app.add_typer(app_e,name='etl',help="This function will run etl or generate a template etl configuration file")
 app.add_typer(app_r,name='registry',help='This function allows labeling database access information')
 app.add_typer(app_i,name="info",help="This function will print either license or supported database technologies")
