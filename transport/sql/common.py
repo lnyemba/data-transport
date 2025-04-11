@@ -3,7 +3,7 @@ This file encapsulates common operations associated with SQL databases via SQLAl
 
 """
 import sqlalchemy as sqa
-from sqlalchemy import text 
+from sqlalchemy import text , MetaData, inspect
 
 import pandas as pd
 
@@ -13,7 +13,13 @@ class Base:
         self._port = None
         self._database = _args['database']
         self._table = _args['table'] if 'table' in _args else None
-        self._engine= sqa.create_engine(self._get_uri(**_args),future=True)
+        _uri = self._get_uri(**_args)
+        if type(_uri) == str :
+            self._engine= sqa.create_engine(_uri,future=True)
+        else:
+            
+            _uri,_kwargs = _uri
+            self._engine= sqa.create_engine(_uri,**_kwargs,future=True)
     def _set_uri(self,**_args) :
         """
         :provider   provider
@@ -34,21 +40,33 @@ class Base:
         :table  optional name of the table (can be fully qualified)
         """
         _table = self._table if 'table' not in _args else _args['table']
+        _map = {'TINYINT':'INTEGER','BIGINT':'INTEGER','TEXT':'STRING','DOUBLE_PRECISION':'FLOAT','NUMERIC':'FLOAT','DECIMAL':'FLOAT','REAL':'FLOAT'}
         _schema = []
-        if _table :
-            if sqa.__version__.startswith('1.') :
-                _handler = sqa.MetaData(bind=self._engine)
-                _handler.reflect()
-            else:
-                #
-                # sqlalchemy's version 2.+
-                _handler = sqa.MetaData()
-                _handler.reflect(bind=self._engine)
-            #
-            # Let us extract the schema with the native types
-            _map = {'BIGINT':'INTEGER','TEXT':'STRING','DOUBLE_PRECISION':'FLOAT','NUMERIC':'FLOAT','DECIMAL':'FLOAT','REAL':'FLOAT'}
-            _schema = [{"name":_attr.name,"type":_map.get(str(_attr.type),str(_attr.type))} for _attr in _handler.tables[_table].columns]
-        return _schema
+        # if _table :
+        #     if sqa.__version__.startswith('1.') :
+        #         _handler = sqa.MetaData(bind=self._engine)
+        #         _handler.reflect()
+        #     else:
+        #         #
+        #         # sqlalchemy's version 2.+
+        #         _handler = sqa.MetaData()
+        #         _handler.reflect(bind=self._engine)
+        #     #
+        #     # Let us extract the schema with the native types
+        #     _map = {'BIGINT':'INTEGER','TEXT':'STRING','DOUBLE_PRECISION':'FLOAT','NUMERIC':'FLOAT','DECIMAL':'FLOAT','REAL':'FLOAT'}
+        #     _schema = [{"name":_attr.name,"type":_map.get(str(_attr.type),str(_attr.type))} for _attr in _handler.tables[_table].columns]
+        #
+        try:
+            if _table :
+                _inspector = inspect(self._engine)
+                _columns = _inspector.get_columns(_table)
+                _schema = [{'name':column['name'],'type':_map.get(str(column['type']),str(column['type'])) } for column in _columns]
+                return _schema
+        except Exception as e:
+            pass
+
+        # else:
+        return []
     def  has(self,**_args):
         return self.meta(**_args)
     def apply(self,sql):
@@ -58,8 +76,8 @@ class Base:
 
         @TODO: Execution of stored procedures
         """
-        if sql.lower().startswith('select') or sql.lower().startswith('with') :
-
+        if sql.strip().lower().startswith('select') or sql.strip().lower().startswith('with') or sql.strip().startswith('show'):
+            
             return pd.read_sql(sql,self._engine) 
         else:
             _handler = self._engine.connect()
@@ -71,6 +89,7 @@ class Base:
 class SQLBase(Base):
     def __init__(self,**_args):
         super().__init__(**_args)
+        self._schema = _args.get('schema',None)
     def get_provider(self):
         raise Exception ("Provider Needs to be set ...")
     def get_default_port(self) :
@@ -94,7 +113,11 @@ class SQLBase(Base):
         # _uri = [_item.strip() for _item in _uri if _item.strip()]
         # return '/'.join(_uri)
         return f'{_provider}://{_host}/{_database}' if _account == '' else f'{_provider}://{_account}{_host}/{_database}'
-
+    def close(self,) :
+        try:
+            self._engine.dispose()
+        except :
+            pass
 class BaseReader(SQLBase):
     def __init__(self,**_args):
         super().__init__(**_args)    
@@ -106,6 +129,8 @@ class BaseReader(SQLBase):
             sql = _args['sql']
         else:
             _table = _args['table'] if 'table' in _args else self._table
+            if self._schema and type(self._schema) == str :
+                _table = f'{self._schema}.{_table}'
             sql = f'SELECT * FROM {_table}'
         return self.apply(sql)
     
@@ -116,9 +141,11 @@ class BaseWriter (SQLBase):
     """
     def __init__(self,**_args):
         super().__init__(**_args)
+        
     def write(self,_data,**_args):
+        
         if type(_data) == dict :
-            _df = pd.DataFrame(_data)
+            _df = pd.DataFrame([_data])
         elif type(_data) == list :
             _df = pd.DataFrame(_data)
         else:
@@ -135,5 +162,8 @@ class BaseWriter (SQLBase):
         #     _mode['schema'] = _args['schema']
         # if 'if_exists' in _args :
         #     _mode['if_exists'] = _args['if_exists']
-
+        if 'schema' in _args and type(_args['schema']) == str:
+            self._schema = _args.get('schema',None)
+        if self._schema :
+           _mode['schema'] = self._schema
         _df.to_sql(_table,self._engine,**_mode)

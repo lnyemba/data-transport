@@ -15,9 +15,11 @@ class Duck :
     def _get_uri(self,**_args):
         return f"""duckdb:///{self.database}"""
 class Reader(Duck,BaseReader) :
-    def __init__(self,**_args):
+    def __init__(self,**_args):        
         Duck.__init__(self,**_args)
         BaseReader.__init__(self,**_args)
+    def _get_uri(self,**_args):
+        return super()._get_uri(**_args),{'connect_args':{'read_only':True}}
 class Writer(Duck,BaseWriter):
     def __init__(self,**_args):
         Duck.__init__(self,**_args)

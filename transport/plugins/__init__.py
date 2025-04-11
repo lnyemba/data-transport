@@ -11,8 +11,10 @@ import importlib as IL
 import importlib.util
 import sys
 import os
+import pandas as pd
+import time
 
-class plugin :
+class Plugin :
     """
     Implementing function decorator for data-transport plugins (post-pre)-processing
     """
@@ -22,8 +24,9 @@ class plugin :
         :mode   restrict to reader/writer
         :about  tell what the function is about    
         """
-        self._name = _args['name']
-        self._about = _args['about']
+        self._name = _args['name'] if 'name' in _args else None
+        self._version = _args['version'] if 'version' in _args else '0.1'
+        self._doc = _args['doc'] if 'doc' in _args else "N/A"
         self._mode = _args['mode'] if 'mode' in _args else 'rw'
     def __call__(self,pointer,**kwargs):
         def wrapper(_args,**kwargs):
@@ -32,57 +35,67 @@ class plugin :
         # @TODO:
         # add attributes to the wrapper object
         #
+        self._name = pointer.__name__ if not self._name else self._name
         setattr(wrapper,'transport',True)
         setattr(wrapper,'name',self._name)
-        setattr(wrapper,'mode',self._mode)
-        setattr(wrapper,'about',self._about)
+        setattr(wrapper,'version',self._version)
+        setattr(wrapper,'doc',self._doc)
         return wrapper
-
 
 class PluginLoader :
     """
     This class is intended to load a plugin and make it available and assess the quality of the developed plugin
     """
+   
     def __init__(self,**_args):
         """
-        :path   location of the plugin (should be a single file)
-        :_names of functions to load
         """
-        _names = _args['names'] if 'names' in _args else None
-        path = _args['path'] if 'path' in _args else None
-        self._names = _names if type(_names) == list else [_names]
+        # _names = _args['names'] if 'names' in _args else None
+        # path = _args['path'] if 'path' in _args else None
+        # self._names = _names if type(_names) == list else [_names]
         self._modules = {}
         self._names = []
-        if path and os.path.exists(path) and _names:
-            for _name in self._names :
-                
-                spec = importlib.util.spec_from_file_location('private', path)
-                module = importlib.util.module_from_spec(spec)
-                spec.loader.exec_module(module) #--loads it into sys.modules
-                if hasattr(module,_name) :
-                    if self.isplugin(module,_name) :
-                        self._modules[_name] = getattr(module,_name)
-                    else:
-                        print ([f'Found {_name}', 'not plugin'])
-                else:
-                    #
-                    # @TODO: We should log this somewhere some how
-                    print (['skipping ',_name, hasattr(module,_name)])
-                    pass
-        else:
-            #
-            # Initialization is empty
-            self._names = []
+        self._registry = _args['registry']
+
         pass
-    def set(self,_pointer) :
+    def load (self,**_args):
+        """
+        This function loads a plugin
+        """
+        self._modules = {}
+        self._names = []
+        path = _args ['path']
+        if os.path.exists(path) :
+            _alias = path.split(os.sep)[-1]
+            spec = importlib.util.spec_from_file_location(_alias, path)
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module) #--loads it into sys.modules
+            for _name in dir(module) :
+                if self.isplugin(module,_name) :
+                    self._module[_name] = getattr(module,_name)
+                    # self._names [_name]
+    def format (self,**_args):
+        uri = _args['alias'],_args['name']
+    # def set(self,_pointer) :
+    def set(self,_key) :
         """
         This function will set a pointer to the list of modules to be called
         This should be used within the context of using the framework as a library
         """
-        _name = _pointer.__name__
+        if type(_key).__name__ == 'function':
+            #
+            # The pointer is in the code provided by the user and loaded in memory
+            #
+            _pointer = _key
+            _key = 'inline@'+_key.__name__
+            # self._names.append(_key.__name__)
+        else:
+            _pointer = self._registry.get(key=_key)
+
+        if _pointer  :
+            self._modules[_key] = _pointer
+            self._names.append(_key)
         
-        self._modules[_name] = _pointer
-        self._names.append(_name)
     def isplugin(self,module,name):
         """
         This function determines if a module is a recognized plugin
@@ -107,12 +120,31 @@ class PluginLoader :
 
         _n = len(self._names)
         return len(set(self._modules.keys()) & set (self._names)) / _n
-    def apply(self,_data):
+    def apply(self,_data,_logger=[]):
+        _input= {}
+        
         for _name in self._modules :
-            _pointer = self._modules[_name]
-            #
-            # @TODO: add exception handling
-            _data = _pointer(_data)
+            try:
+                _input = {'action':'plugin','object':_name,'input':{'status':'PASS'}}
+                _pointer = self._modules[_name]
+                if type(_data) == list :
+                    _data = pd.DataFrame(_data)
+                _brow,_bcol = list(_data.shape) 
+                
+                #
+                # @TODO: add exception handling
+                _data = _pointer(_data)
+                
+                _input['input']['shape'] = {'rows-dropped':_brow - _data.shape[0]}
+            except Exception as e:
+                _input['input']['status'] = 'FAILED'
+                print (e)
+            time.sleep(1)
+            if _logger:
+                try:
+                    _logger(**_input)
+                except Exception as e:
+                    pass    
         return _data
     # def apply(self,_data,_name):
     #     """

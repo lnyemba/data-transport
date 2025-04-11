@@ -11,7 +11,7 @@ BIGQUERY	='bigquery'
 FILE 	= 'file'
 ETL = 'etl'
 
-SQLITE = 'sqlite'
+SQLITE = 'sqlite3'
 SQLITE3= 'sqlite3'
 DUCKDB = 'duckdb'
 
@@ -44,7 +44,9 @@ PGSQL	= POSTGRESQL
 
 AWS_S3  = 's3'
 RABBIT = RABBITMQ
-
-
+ICEBERG='iceberg'
+APACHE_ICEBERG = 'iceberg'
+DRILL = 'drill'
+APACHE_DRILL = 'drill'
 # QLISTENER = 'qlistener'
     
