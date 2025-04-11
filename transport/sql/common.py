@@ -56,11 +56,17 @@ class Base:
         #     _map = {'BIGINT':'INTEGER','TEXT':'STRING','DOUBLE_PRECISION':'FLOAT','NUMERIC':'FLOAT','DECIMAL':'FLOAT','REAL':'FLOAT'}
         #     _schema = [{"name":_attr.name,"type":_map.get(str(_attr.type),str(_attr.type))} for _attr in _handler.tables[_table].columns]
         #
+        try:
+            if _table :
+                _inspector = inspect(self._engine)
+                _columns = _inspector.get_columns(_table)
+                _schema = [{'name':column['name'],'type':_map.get(str(column['type']),str(column['type'])) } for column in _columns]
+                return _schema
+        except Exception as e:
+            pass
 
-        _inspector = inspect(self._engine)
-        _columns = _inspector.get_columns(_table)
-        _schema = [{'name':column['name'],'type':_map.get(str(column['type']),str(column['type'])) } for column in _columns]
-        return _schema
+        # else:
+        return []
     def  has(self,**_args):
         return self.meta(**_args)
     def apply(self,sql):
@@ -137,8 +143,9 @@ class BaseWriter (SQLBase):
         super().__init__(**_args)
         
     def write(self,_data,**_args):
+        
         if type(_data) == dict :
-            _df = pd.DataFrame(_data)
+            _df = pd.DataFrame([_data])
         elif type(_data) == list :
             _df = pd.DataFrame(_data)
         else:
