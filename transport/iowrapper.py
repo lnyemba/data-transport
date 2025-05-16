@@ -22,7 +22,8 @@ class IO:
         plugins = _args['plugins'] if 'plugins' in _args else None
 
         self._agent = _agent
-        self._ixloader = plugin_ix.Loader () #--
+        # self._ixloader = plugin_ix.Loader () #-- must indicate where the plugin registry file is 
+        self._ixloader = plugin_ix.Loader (registry=plugin_ix.Registry(folder=transport.registry.REGISTRY_PATH))
         if plugins :
             self.init_plugins(plugins)
         #     for _ref in plugins :
