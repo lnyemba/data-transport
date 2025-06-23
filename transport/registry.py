@@ -13,7 +13,7 @@ This class manages data from the registry and allows (read only)
 @TODO: add property to the DATA attribute
 """
 
-REGISTRY_PATH=os.sep.join([os.environ['HOME'],'.data-transport'])
+REGISTRY_PATH=os.sep.join([os.environ.get('HOME','USERPROFILE'),'.data-transport'])
 #
 # This path can be overriden by an environment variable ...
 #

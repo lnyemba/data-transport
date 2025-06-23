@@ -74,7 +74,7 @@ class Iceberg :
         """
         sql query/command to run against apache iceberg
         """
-        return self._session.sql(_query)
+        return self._session.sql(_query).toPandas()
     def has (self,**_args):
         try:
             _prefix = self._getPrefix(**_args)

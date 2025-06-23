@@ -26,24 +26,7 @@ class IO:
         self._ixloader = plugin_ix.Loader (registry=plugin_ix.Registry(folder=transport.registry.REGISTRY_PATH))
         if plugins :
             self.init_plugins(plugins)
-        #     for _ref in plugins :
-        #         self._ixloader.set(_ref)
-        # if plugins :
-        #     self._init_plugins(plugins)
-        # else:
-        #     self._plugins = None
-        
-    # def _init_plugins(self,_args):
-    #     """
-    #     This function will load pipelined functions as a plugin loader
-    #     """
-    #     if 'path' in _args and 'names' in _args :
-    #         self._plugins = PluginLoader(**_args)
-    #     else:
-    #         self._plugins = PluginLoader()
-    #         [self._plugins.set(_pointer) for _pointer in _args]
-        #
-        # @TODO: We should have a way to log what plugins are loaded and ready to use
+
     def meta (self,**_args):
         if hasattr(self._agent,'meta') :
             return self._agent.meta(**_args)
