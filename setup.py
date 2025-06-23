@@ -24,8 +24,9 @@ args["url"] =   "https://healthcareio.the-phi.com/git/code/transport.git"
 args['scripts'] = ['bin/transport']
 args['classifiers'] = ['Programming Language :: Python :: 3',
                     'License :: OSI Approved :: MIT License',
-                     'Operating System :: OS Independent',
-                                ],
+                    "Topic :: Utilities",
+                     'Operating System :: OS Independent'
+                                ]
 # if sys.version_info[0] == 2 :
 #     args['use_2to3'] = True
 #     args['use_2to3_exclude_fixers']=['lib2to3.fixes.fix_import']
