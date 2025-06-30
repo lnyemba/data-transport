@@ -1,0 +1,62 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "data-transport"
+dynamic = ["version"]
+authors = [
+    {name="Steve L. Nyemba" , email = "info@the-phi.com"},
+]
+description = ""
+readme = "README.md"
+license = {text = "LICENSE"}
+keywords = ["mongodb","duckdb","couchdb","rabbitmq","file","read","write","s3","sqlite"]
+classifiers = [
+ "License :: OSI Approved :: MIT License",
+    "Topic :: Utilities",
+]
+dependencies = [
+    "termcolor","sqlalchemy", "aiosqlite","duckdb-engine",
+    "typer","pandas","numpy","sqlalchemy","pyarrow",
+    "plugin-ix@git+https://github.com/lnyemba/plugins-ix"
+]
+[project.optional-dependencies]
+sql         = ["mysql-connector-python","psycopg2-binary","nzpy","pymssql","duckdb-engine","aiosqlite"]
+nosql       = ["pymongo","cloudant"]
+cloud       = ["pandas-gbq","google-cloud-bigquery","google-cloud-bigquery-storage", "databricks-sqlalchemy","pyncclient","boto3","boto","botocore"]
+warehouse   = ["pydrill","pyspark","sqlalchemy_drill"]
+rabbitmq    = ["pika"]
+sqlite      = ["aiosqlite"]
+aws3        = ["boto3","boto","botocore"]
+nextcloud   =  ["pyncclient"]
+mongodb     = ["pymongo"]
+netezza     = ["nzpy"]
+mysql       = ["mysql-connector-python"]
+postgresql  = ["psycopg2-binary"]
+sqlserver   = ["pymssql"]
+http       = ["flask-session"]
+all         = ["mysql-connector-python","psycopg2-binary","nzpy","pymssql","duckdb-engine","aiosqlite","pymongo","cloudant","pandas-gbq","google-cloud-bigquery","google-cloud-bigquery-storage", "databricks-sqlalchemy","pyncclient","boto3","boto","botocore","pydrill","pyspark","sqlalchemy_drill", "pika","aiosqlite","boto3","boto","botocore", "pyncclient"]
+
+[project.urls]
+Homepage = "https://healthcareio.the-phi.com/git/code/transport.git"
+
+#[project.scripts]
+#transport = "transport:main"
+
+[tool.setuptools]
+include-package-data = true
+zip-safe = false
+script-files = ["bin/transport"]
+
+[tool.setuptools.packages.find]
+include = ["info","info.*", "transport", "transport.*"]
+
+[tool.setuptools.dynamic]
+version = {attr = "info.__version__"}
+#authors = {attr = "meta.__author__"}
+
+# If you have a info.py file, you might also want to include the author dynamically:
+# [tool.setuptools.dynamic]
+# version = {attr = "info.__version__"}
+# authors = {attr = "info.__author__"}
