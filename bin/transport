@@ -53,9 +53,9 @@ def wait(jobs):
     while jobs :
         jobs = [thread for thread in jobs if thread.is_alive()]
         time.sleep(1)
-def wait (jobs):
-    while jobs :
-            jobs = [pthread for pthread in jobs if pthread.is_alive()]
+# def wait (jobs):
+#     while jobs :
+#             jobs = [pthread for pthread in jobs if pthread.is_alive()]
 
 @app_e.command(name="run")
 def apply (path:Annotated[str,typer.Argument(help="path of the configuration file")],
