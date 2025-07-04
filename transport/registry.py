@@ -12,8 +12,11 @@ from io import StringIO
 This class manages data from the registry and allows (read only)
 @TODO: add property to the DATA attribute
 """
+if 'HOME' in os.environ :
+    REGISTRY_PATH=os.sep.join([os.environ['HOME'],'.data-transport'])
+else:
+    REGISTRY_PATH=os.sep.join([os.environ['USERPROFILE'],'.data-transport'])
 
-REGISTRY_PATH=os.sep.join([os.environ.get('HOME','USERPROFILE'),'.data-transport'])
 #
 # This path can be overriden by an environment variable ...
 #
