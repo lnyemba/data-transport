@@ -18,7 +18,8 @@ classifiers = [
 ]
 dependencies = [
     "termcolor","sqlalchemy", "aiosqlite","duckdb-engine",
-    "typer","pandas","numpy","sqlalchemy","pyarrow",
+    "mysql-connector-python","psycopg2-binary","nzpy","pymssql","duckdb-engine","aiosqlite",
+    "typer","pandas","numpy","sqlalchemy","pyarrow","smart-open",
     "plugin-ix@git+https://github.com/lnyemba/plugins-ix"
 ]
 [project.optional-dependencies]

@@ -49,7 +49,7 @@ def init (email,path=REGISTRY_PATH,override=False,_file=REGISTRY_FILE):
     Initializing the registry and will raise an exception in the advent of an issue
     """
     p = '@' in email
-    q = False if '.' not in email else email.split('.')[-1] in ['edu','com','io','ai','org']
+    q = False if '.' not in email else email.split('.')[-1] in ['edu','com','io','ai','org', 'co', 'cc','rw','zw'] or len (email.split('.')[-1]) >1 or len (email.split('.')[-1]) < 4
     if p and q :
         _config = {"email":email,'version':__version__}
         if not os.path.exists(path):
