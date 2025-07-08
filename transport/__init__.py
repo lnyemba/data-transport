@@ -55,7 +55,7 @@ def init():
     global PROVIDERS
     for _module in [cloud,sql,nosql,other,warehouse] :
         for _provider_name in dir(_module) :
-            if _provider_name.startswith('__') or _provider_name == 'common':
+            if _provider_name.startswith('__') or _provider_name == 'common' or type(_module) in [None,str,dict]:
                 continue
             PROVIDERS[_provider_name] = {'module':getattr(_module,_provider_name),'type':_module.__name__}
     #
