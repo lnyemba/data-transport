@@ -22,19 +22,19 @@ import numpy as np
 from transport import sql
 try:
     from transport import  nosql
-finally:
+except Exception as e:
     pass
 try:
     from transport import  cloud
-finally:
+except Exception as e:
     pass
 try:
     from transport import  warehouse
-finally:
+except Exception as e:
     pass
 try:
     from transport import  other
-finally:
+except Exception as e:
     pass
 
 
