@@ -19,24 +19,15 @@ classifiers = [
 dependencies = [
     "termcolor","sqlalchemy", "aiosqlite","duckdb-engine",
     "mysql-connector-python","psycopg2-binary","nzpy","pymssql","duckdb-engine","aiosqlite",
-    "typer","pandas","numpy","sqlalchemy","pyarrow",
+    "typer","pandas","numpy","sqlalchemy","pyarrow","smart-open",
     "plugin-ix@git+https://github.com/lnyemba/plugins-ix"
 ]
 [project.optional-dependencies]
 sql         = ["mysql-connector-python","psycopg2-binary","nzpy","pymssql","duckdb-engine","aiosqlite"]
 nosql       = ["pymongo","cloudant"]
-cloud       = ["pandas-gbq","google-cloud-bigquery","google-cloud-bigquery-storage", "databricks-sqlalchemy","pyncclient","boto3","boto","botocore"]
+cloud       = ["boto","boto3","botocore","pyncclient","pandas-gbq","google-cloud-bigquery","google-cloud-bigquery-storage", "databricks-sqlalchemy","pyncclient","boto3","boto","botocore"]
 warehouse   = ["pydrill","pyspark","sqlalchemy_drill"]
-rabbitmq    = ["pika"]
-sqlite      = ["aiosqlite"]
-aws3        = ["boto3","boto","botocore"]
-nextcloud   =  ["pyncclient"]
-mongodb     = ["pymongo"]
-netezza     = ["nzpy"]
-mysql       = ["mysql-connector-python"]
-postgresql  = ["psycopg2-binary"]
-sqlserver   = ["pymssql"]
-http       = ["flask-session"]
+other       = ["pika","flask-session"]
 all         = ["mysql-connector-python","psycopg2-binary","nzpy","pymssql","duckdb-engine","aiosqlite","pymongo","cloudant","pandas-gbq","google-cloud-bigquery","google-cloud-bigquery-storage", "databricks-sqlalchemy","pyncclient","boto3","boto","botocore","pydrill","pyspark","sqlalchemy_drill", "pika","aiosqlite","boto3","boto","botocore", "pyncclient"]
 
 [project.urls]
