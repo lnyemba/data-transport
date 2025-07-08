@@ -23,19 +23,19 @@ from transport import sql
 try:
     from transport import  nosql
 except Exception as e:
-    pass
+    nosql = {}
 try:
     from transport import  cloud
 except Exception as e:
-    pass
+    cloud = {}
 try:
     from transport import  warehouse
 except Exception as e:
-    pass
+    warehouse = {}
 try:
     from transport import  other
 except Exception as e:
-    pass
+    other = {}
 
 
 
