@@ -51,6 +51,7 @@ def init (email,path=REGISTRY_PATH,override=False,_file=REGISTRY_FILE):
     p = '@' in email
     #q = False if '.' not in email else email.split('.')[-1] in ['edu','com','io','ai','org']
     q = len(email.split('.')[-1]) in [2,3]
+
     if p and q :
         _config = {"email":email,'version':__version__}
         if not os.path.exists(path):

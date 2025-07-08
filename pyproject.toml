@@ -55,7 +55,7 @@ include = ["info","info.*", "transport", "transport.*"]
 
 [tool.setuptools.dynamic]
 version = {attr = "info.__version__"}
-#authors = {attr = "meta.__author__"}
+#authors = {attr = "info.__author__"}
 
 # If you have a info.py file, you might also want to include the author dynamically:
 # [tool.setuptools.dynamic]
