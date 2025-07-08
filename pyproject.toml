@@ -23,12 +23,12 @@ dependencies = [
     "plugin-ix@git+https://github.com/lnyemba/plugins-ix"
 ]
 [project.optional-dependencies]
-sql         = ["mysql-connector-python","psycopg2-binary","nzpy","pymssql","duckdb-engine","aiosqlite"]
+#sql         = ["mysql-connector-python","psycopg2-binary","nzpy","pymssql","duckdb-engine","aiosqlite"]
 nosql       = ["pymongo","cloudant"]
 cloud       = ["boto","boto3","botocore","pyncclient","pandas-gbq","google-cloud-bigquery","google-cloud-bigquery-storage", "databricks-sqlalchemy","pyncclient","boto3","boto","botocore"]
 warehouse   = ["pydrill","pyspark","sqlalchemy_drill"]
 other       = ["pika","flask-session"]
-all         = ["mysql-connector-python","psycopg2-binary","nzpy","pymssql","duckdb-engine","aiosqlite","pymongo","cloudant","pandas-gbq","google-cloud-bigquery","google-cloud-bigquery-storage", "databricks-sqlalchemy","pyncclient","boto3","boto","botocore","pydrill","pyspark","sqlalchemy_drill", "pika","aiosqlite","boto3","boto","botocore", "pyncclient"]
+all         = ["pymongo","cloudant","pandas-gbq","google-cloud-bigquery","google-cloud-bigquery-storage", "databricks-sqlalchemy","pyncclient","boto3","boto","botocore","pydrill","pyspark","sqlalchemy_drill", "pika","aiosqlite","boto3","boto","botocore", "pyncclient"]
 
 [project.urls]
 Homepage = "https://healthcareio.the-phi.com/git/code/transport.git"
