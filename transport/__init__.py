@@ -22,20 +22,20 @@ import numpy as np
 from transport import sql
 try:
     from transport import  nosql
-finally:
-    pass
+except Exception as e:
+    nosql = {}
 try:
     from transport import  cloud
-finally:
-    pass
+except Exception as e:
+    cloud = {}
 try:
     from transport import  warehouse
-finally:
-    pass
+except Exception as e:
+    warehouse = {}
 try:
     from transport import  other
-finally:
-    pass
+except Exception as e:
+    other = {}
 
 
 
