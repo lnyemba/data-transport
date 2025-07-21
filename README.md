@@ -4,12 +4,11 @@ This project implements an abstraction of objects that can have access to a vari
 
 # Why Use Data-Transport ?
 
-Mostly data scientists that don't really care about the underlying database and would like a simple and consistent way to read/write and move data are well served. Additionally we implemented lightweight Extract Transform Loading API and command line (CLI) tool. Finally it is possible to add pre/post processing pipeline functions to read/write
-
-1. Familiarity with **pandas data-frames**
-2. Connectivity **drivers** are included
-3. Reading/Writing data from various sources
-4. Useful for data migrations or **ETL**
+Data transport is a simple framework that:
+- easy to install & modify (open-source)
+- enables access to multiple database technologies (pandas, SQLAlchemy)
+- enables notebook sharing without exposing database credential.
+- supports pre/post processing specifications (pipeline)
 
 
 ## Installation
@@ -18,19 +17,16 @@ Within the virtual environment perform the following :
 
     pip install git+https://github.com/lnyemba/data-transport.git
 
-## Features
+Options to install components in square brackets
 
-    - read/write from over a dozen databases
-    - run ETL jobs seamlessly
+    pip install data-transport[nosql,cloud,warehouse,all]@git+https://github.com/lnyemba/data-transport.git
+
+
+## Additional features
+
+    - In addition to read/write, there is support for functions for pre/post processing
+    - CLI interface to add to registry, run ETL
     - scales and integrates into shared environments like apache zeppelin; jupyterhub; SageMaker; ...
-
-## What's new
-
-Unlike older versions 2.0 and under, we focus on collaborative environments like jupyter-x servers; apache zeppelin:
-
-    1. Simpler syntax to create reader or writer
-    2. auth-file registry that can be referenced using a label
-    3. duckdb support
 
 
 ## Learn More
