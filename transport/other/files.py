@@ -30,7 +30,11 @@ class Reader (File):
 	def read(self,**args):
 		_path = self.path if 'path' not in args else args['path']
 		_delimiter = self.delimiter if 'delimiter' not in args else args['delimiter']
-		return pd.read_csv(_path,delimiter=self.delimiter)
+		_df =  pd.read_csv(_path,delimiter=self.delimiter)
+		if 'query' in args :
+			_query = args['query']
+			_df = _df.query(_query)
+		return _df
 	def stream(self,**args):
 		raise Exception ("streaming needs to be implemented")
 class Writer (File):
