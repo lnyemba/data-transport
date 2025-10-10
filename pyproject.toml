@@ -39,7 +39,7 @@ Homepage = "https://healthcareio.the-phi.com/git/code/transport.git"
 [tool.setuptools]
 include-package-data = true
 zip-safe = false
-script-files = ["bin/transport"]
+script-files = ["bin/transport","bin/transport.cmd"]
 
 [tool.setuptools.packages.find]
 include = ["info","info.*", "transport", "transport.*"]
