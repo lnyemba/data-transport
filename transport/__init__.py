@@ -42,7 +42,7 @@ except Exception as e:
 import pandas as pd
 import json
 import os
-from info import __version__,__author__,__email__,__license__,__app_name__,__whatsnew__,__edition__
+from transport.info import __version__,__author__,__email__,__license__,__app_name__,__whatsnew__,__edition__
 from transport.iowrapper import IWriter, IReader, IETL
 from transport.plugins import PluginLoader
 from transport import providers

@@ -42,11 +42,11 @@ zip-safe = false
 script-files = ["bin/transport","bin/transport.cmd"]
 
 [tool.setuptools.packages.find]
-include = ["info","info.*", "transport", "transport.*"]
+include = [ "transport", "transport.*"]
 
 [tool.setuptools.dynamic]
-version = {attr = "info.__version__"}
-#authors = {attr = "meta.__author__"}
+version = {attr = "transport.info.__version__"}
+#authors = {attr = "transport.__author__"}
 
 # If you have a info.py file, you might also want to include the author dynamically:
 # [tool.setuptools.dynamic]

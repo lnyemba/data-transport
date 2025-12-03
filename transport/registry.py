@@ -1,6 +1,6 @@
 import os
 import json
-from info import __version__
+from transport.info import __version__
 import copy
 import transport
 import importlib

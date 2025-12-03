@@ -178,7 +178,17 @@ def register (label:Annotated[str,typer.Argument(help="unique label that will be
         _msg = f"""{TIMES_MARK} {e}"""
     print (_msg)
     
-    pass
+@app_r.command(name="list")
+def register_list ():
+    """
+    This function will list existing registry entries and basic information {label,vendor}
+    """
+    # print (transport.registry.DATA)
+    _reg = transport.registry.DATA
+    _data = [{'label':key,'provider':_reg[key]['provider']} for key in _reg if 'provider' in _reg[key]]
+    _data = pd.DataFrame(_data)
+    print (_data)
+
 @app_x.command(name='add') 
 def register_plugs (
     alias:Annotated[str,typer.Argument(help="unique function name within a file")],
