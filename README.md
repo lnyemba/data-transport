@@ -4,34 +4,40 @@ This project implements an abstraction of objects that can have access to a vari
 
 # Why Use Data-Transport ?
 
-Mostly data scientists that don't really care about the underlying database and would like a simple and consistent way to read/write and move data are well served. Additionally we implemented lightweight Extract Transform Loading API and command line (CLI) tool. Finally it is possible to add pre/post processing pipeline functions to read/write
+Data transport is a simple framework that enables read/write to multiple databases or technologies that can hold data. In using **data-transport**, you are able to:
 
-1. Familiarity with **pandas data-frames**
-2. Connectivity **drivers** are included
-3. Reading/Writing data from various sources
-4. Useful for data migrations or **ETL**
-
+- Enjoy the simplicity of **data-transport** because it leverages SQLAlchemy & Pandas data-frames.
+- Share notebooks and code without having to disclosing database credentials. 
+- Seamlessly and consistently access to multiple database technologies at no cost
+- No need to worry about accidental writes to a database leading to inconsistent data
+- Implement consistent pre and post processing as a pipeline i.e aggregation of functions
+- **data-transport** is open-source under MIT License https://github.com/lnyemba/data-transport
 
 ## Installation
 
-Within the virtual environment perform the following :
+Within the virtual environment perform the following, the options for installation are:
 
-    pip install git+https://github.com/lnyemba/data-transport.git
+**sql**       - by default postgresql, mysql, sqlserver, sqlite3+, duckdb 
 
-## Features
+    pip install data-transport[cloud,nosql,other,all]git+https://github.com/lnyemba/data-transport.git
 
-    - read/write from over a dozen databases
-    - run ETL jobs seamlessly
+Options to install components in square brackets, these components are 
+
+**warehouse** - Apache Iceberg, Apache Drill
+
+**cloud**  - to support nextcloud, s3
+
+**nosql** - support for mongodb, couchdb
+
+**other**  - support for files, rabbitmq, http
+
+    pip install data-transport[nosql,cloud,warehouse,all]@git+https://github.com/lnyemba/data-transport.git
+
+## Additional features
+
+    - In addition to read/write, there is support for functions for pre/post processing
+    - CLI interface to add to registry, run ETL
     - scales and integrates into shared environments like apache zeppelin; jupyterhub; SageMaker; ...
-
-## What's new
-
-Unlike older versions 2.0 and under, we focus on collaborative environments like jupyter-x servers; apache zeppelin:
-
-    1. Simpler syntax to create reader or writer
-    2. auth-file registry that can be referenced using a label
-    3. duckdb support
-
 
 ## Learn More
 
