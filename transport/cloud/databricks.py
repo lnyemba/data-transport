@@ -17,6 +17,8 @@ import sqlalchemy
 # from transport.common import Reader,Writer
 import pandas as pd
 
+def template ():
+    return {'provider':'databricks','host':'fqn-host','token':'token','cluster_path':'path-of-cluster','catalog':'name-of-catalog','database':'schema-or-database','table':'table'}
 
 class Bricks:
     """

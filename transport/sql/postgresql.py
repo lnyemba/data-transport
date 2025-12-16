@@ -1,9 +1,12 @@
 
-from transport.sql.common import BaseReader , BaseWriter
+from transport.sql.common import BaseReader , BaseWriter, template as _template
 from psycopg2.extensions import register_adapter, AsIs
 import numpy as np
 
 register_adapter(np.int64, AsIs)
+
+def template ():
+    return dict(_template(),**{'port':5432,'chunksize':10000})
 
 class PG:
     def __init__(self,**_args):

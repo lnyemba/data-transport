@@ -8,6 +8,8 @@ import pandas as pd
 from io import StringIO
 import json
 import nextcloud_client as nextcloud
+def template():
+    return {"url":None,"token":None,"uid":None,"file":None}
 
 class Nextcloud :
     def __init__(self,**_args):

@@ -2,7 +2,8 @@
 This module implements the handler for duckdb (in memory or not)
 """
 from transport.sql.common import Base, BaseReader, BaseWriter
-
+def template ():
+    return {'database':'path-to-database','table':'table'}
 class Duck :
     def __init__(self,**_args):
         #

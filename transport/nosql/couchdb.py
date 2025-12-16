@@ -11,6 +11,8 @@ import sys
 # from transport.common import Reader, Writer
 from datetime import datetime
 
+def template():
+	return {'dbname':'database','doc':'document','username':'username','password':'password','url':'url-with-port'}
 
 class Couch:
 	"""

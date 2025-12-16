@@ -19,7 +19,8 @@ import json
 import re
 from multiprocessing import Lock, RLock
 from transport.common import IEncoder
-
+def template():
+    return {'provider':'mongodb','host':'localhost','port':27017,'db':'db-name','collection':'collection-name','username':'username','password':'password','mechanism':'SCRAM-SHA-256'}
 class Mongo :
     lock = RLock()
     """
