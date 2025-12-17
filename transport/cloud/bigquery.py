@@ -14,6 +14,8 @@ import numpy as np
 import time
 
 MAX_CHUNK = 2000000
+def template ():
+    return {'provider':'bigquery','private_key':'path-to-key','dataset':'name-of-dataset','table':'table'}
 class BigQuery:
     def __init__(self,**_args):
         path = _args['service_key'] if 'service_key' in _args else _args['private_key']
@@ -23,6 +25,7 @@ class BigQuery:
         self.dtypes = _args['dtypes'] if 'dtypes' in _args else None
         self.table = _args['table'] if 'table' in _args else None
         self.client = bq.Client.from_service_account_json(self.path)
+
     def meta(self,**_args):
         """
         This function returns meta data for a given table or query with dataset/table properly formatted

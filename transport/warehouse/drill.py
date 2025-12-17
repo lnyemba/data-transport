@@ -3,6 +3,10 @@ import pandas as pd
 from .. sql.common import BaseReader , BaseWriter
 import sqlalchemy as sqa
 
+
+def template():
+    return {'host':'localhost','port':8047,'ssl':False,'table':None,'database':None}
+
 class Drill :
     __template = {'host':None,'port':None,'ssl':None,'table':None,'database':None}
     def __init__(self,**_args):

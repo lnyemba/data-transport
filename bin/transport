@@ -177,7 +177,25 @@ def register (label:Annotated[str,typer.Argument(help="unique label that will be
     except Exception as e:
         _msg = f"""{TIMES_MARK} {e}"""
     print (_msg)
-    
+@app_r.command(name="template")    
+def template(name:Annotated[str,typer.Argument(help="database technology provider" ) ]):
+    """
+    This function will generate a template entry for the registry (content of an auth file)
+    """
+    #
+    # retrieve the provider and display the template if it has one
+    for _module in  ['sql','cloud','warehouse','nosql','other'] :
+        ref = getattr(transport,_module) if hasattr(transport,_module) else None
+        _entry = {}
+        if ref :
+            if hasattr(ref,name) :
+                _pointer = getattr(ref,name)
+                _entry = dict({'provider':name},**_pointer.template()) if hasattr(_pointer,'template') else {}
+                break
+    #
+    #
+    print ( json.dumps(_entry))
+    pass
 @app_r.command(name="list")
 def register_list ():
     """

@@ -4,6 +4,10 @@ This file is a wrapper around pandas built-in functionalities to handle characte
 import pandas as pd
 import numpy as np
 import os
+
+def template():
+	return {'path':None,'delimiter':None}
+
 class File :	
 	def __init__(self,**params):
 		"""

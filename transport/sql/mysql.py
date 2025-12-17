@@ -1,8 +1,13 @@
 """
 This file implements support for mysql and maria db (with drivers mysql+mysql)
 """
-from transport.sql.common import BaseReader, BaseWriter
+from transport.sql.common import BaseReader, BaseWriter, template as _template
+# import transport.sql.common.template as _template
+
 # import mysql.connector as my
+def template ():
+    return dict(_template(),**{'port':3306})
+
 class MYSQL:
     
     def get_provider(self):

@@ -17,6 +17,10 @@ import sys
 # 	from common import Reader, Writer
 import json
 from multiprocessing import RLock
+
+def template():
+	return {'port':5672,'host':'localhost','queue':None,'vhost':None,'username':None,'password':None}
+
 class MessageQueue:
 	"""
 		This class hierarchy is designed to handle interactions with a queue server using pika framework (our tests are based on rabbitmq)

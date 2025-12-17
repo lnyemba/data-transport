@@ -1,6 +1,8 @@
 import sqlalchemy
 import pandas as pd
 from transport.sql.common import Base, BaseReader, BaseWriter
+def template():
+    return {'database':'path-to-database','table':'table'}
 class SQLite (BaseReader):
     def __init__(self,**_args):
         super().__init__(**_args)

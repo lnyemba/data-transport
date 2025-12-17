@@ -7,7 +7,8 @@ import requests
 from io import StringIO
 import pandas as pd
 
-
+def template():
+	return {'url':None, 'headers':{'key':'value'}}
 class Reader:
 	"""
 	This class is designed to read data from an Http request file handler provided to us by flask

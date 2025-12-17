@@ -3,7 +3,11 @@ Handling Microsoft SQL Server via pymssql driver/connector
 """
 import sqlalchemy
 import pandas as pd
-from transport.sql.common import Base, BaseReader, BaseWriter
+from transport.sql.common import Base, BaseReader, BaseWriter, template as _template
+
+
+def template ():
+    return dict(_template(),**{'port':1433})
 
 
 class MsSQLServer:

@@ -11,6 +11,8 @@ from pyspark.sql.types import *
 from pyspark.sql.functions import col, to_date, to_timestamp
 import copy
 
+def template():
+    return {'catalog':None,'database':None,'table':None}
 class Iceberg :
     def __init__(self,**_args):
         """

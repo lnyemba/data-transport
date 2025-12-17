@@ -6,7 +6,8 @@ import sqlalchemy as sqa
 from sqlalchemy import text , MetaData, inspect
 
 import pandas as pd
-
+def template():
+    return {'host':'localhost','database':'database','table':'table'}
 class Base:
     def __init__(self,**_args):
         self._host = _args['host'] if 'host' in _args else 'localhost'

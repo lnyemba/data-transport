@@ -1,6 +1,9 @@
 import nzpy as nz   
-from transport.sql.common import BaseReader, BaseWriter
+from transport.sql.common import BaseReader, BaseWriter, template as _template
 
+
+def template ():
+    return dict(_template(),**{'port':5480})
 class Netezza:
     def get_provider(self):
         return 'netezza+nzpy'

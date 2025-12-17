@@ -20,6 +20,8 @@ from io import StringIO
 import pandas as pd
 import json
 
+def template():
+	return {'access_key':'access-key','secret_key':'secret-key','region':'region','bucket':'name-of-bucket','file':'file-name','chunksize':10000}
 class s3 :
 	"""
 		@TODO: Implement a search function for a file given a bucket??
