@@ -56,6 +56,9 @@ def wait(jobs):
 # def wait (jobs):
 #     while jobs :
 #             jobs = [pthread for pthread in jobs if pthread.is_alive()]
+def launch_etl (_args):
+    _etlTask = IETL(**_args)
+    _etlTask.read()
 
 @app_e.command(name="run")
 def apply (path:Annotated[str,typer.Argument(help="path of the configuration file")],
@@ -75,10 +78,10 @@ def apply (path:Annotated[str,typer.Argument(help="path of the configuration fil
         jobs = []          
         for _args in _config :
             # pthread = etl.instance(**_args) #-- automatically starts the process
-            def bootup ():
-                _worker = IETL(**_args)
-                _worker.run()
-            pthread = Process(target=bootup)
+            # def bootup ():
+            #     _worker = IETL(**_args)
+            #     _worker.read()
+            pthread = Process(target=launch_etl,args=(_args,))
             pthread.start()
             jobs.append(pthread)
             if len(jobs) == batch :
