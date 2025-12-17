@@ -111,7 +111,7 @@ class IETL(IReader) :
     def read(self,**_args):
         _key = 'cmd' if 'cmd' in self._source else 'query'
         _kwargs = self._source[_key] if _key in self._source else None
-        _data = super().read(**_kwargs)
+        _data = super().read(**_kwargs) if _kwargs else super().read()
         for _kwargs in self._targets :
             self.post(_data,**_kwargs)
 
@@ -127,6 +127,6 @@ class IETL(IReader) :
         # if 'schema' in _args :
         #     writer.write(_data,schema=_args['schema'])
         # else:
-        print ("writing .... ",_data.shape)
+        
         writer.write(_data)
         writer.close()
