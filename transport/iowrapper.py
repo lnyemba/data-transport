@@ -111,8 +111,8 @@ class IETL(IReader) :
         _data = super().read(**_args)
         _schema = super().meta()
         for _kwargs in self._targets :
-            if _schema :
-                _kwargs['schema'] = _schema
+            # if _schema :
+            #     _kwargs['schema'] = _schema
             self.post(_data,**_kwargs)
 
         return _data
