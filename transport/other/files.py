@@ -34,7 +34,7 @@ class Reader (File):
 	def read(self,**args):
 		_path = self.path if 'path' not in args else args['path']
 		_delimiter = self.delimiter if 'delimiter' not in args else args['delimiter']
-		_df =  pd.read_csv(_path,delimiter=self.delimiter)
+		_df =  pd.read_csv(_path,delimiter=_delimiter)
 		if 'query' in args :
 			_query = args['query']
 			_df = _df.query(_query)

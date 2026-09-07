@@ -19,12 +19,14 @@ class Reader:
 	def __init__(self,**_args):
 		self._url = _args['url']
 		self._headers = None if 'headers' not in _args else _args['headers']
+		self._data = None if 'data' not in _args else _args['data']
+		self._method = 'get' if 'method' not in _args else _args['method'].lower()
 					
 	# def isready(self):
 	# 	return self.file_length > 0
 	def format(self,_response):
 		_mimetype= _response.headers['Content-Type']
-		if _mimetype == 'text/csv' or 'text/csv':
+		if 'text/plain' in _mimetype or 'text/csv' in _mimetype:
 			_content = _response.text
 			return pd.read_csv(StringIO(_content))
 		#
@@ -32,12 +34,28 @@ class Reader:
 		#
 		
 		return _response.text
+	def get (self,key,_args):
+		"""
+		This function inspects an argument and tries to determine if the corresponding attribute is set 
+			i.e the attribute will be prefixed by underscore
+		
+		"""
+
+		_attr = f'_{key}'
+		return _args[key] if key in _args else (getattr(self,_attr) if hasattr(self,_attr) else None)
 	def read(self,**_args):
-		if self._headers :
-			r = requests.get(self._url,headers = self._headers)
-		else:
-			r = requests.get(self._url,headers = self._headers)
-		return self.format(r)
+		_method  	= self.get('method',_args)
+		_headers	= self.get('headers',_args)
+		_data 		= self.get('data',_args)
+		_url		= self.get('url',_args)
+		_requestPpointer = getattr(requests,_method)
+		_resp =  _requestPpointer(_url,headers=_headers,data=_data)
+		return self.format(_resp)
+		# if self._headers :
+		# 	r = requests.get(self._url,headers = self._headers)
+		# else:
+		# 	r = requests.get(self._url,headers = self._headers)
+		# return self.format(r)
 		
 class Writer:
 	"""
