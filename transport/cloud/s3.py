@@ -12,7 +12,7 @@ import boto3
 # from boto.s3.connection import S3Connection, OrdinaryCallingFormat
 import numpy as np
 import botocore
-from smart_open import smart_open
+# from smart_open import smart_open
 import sys
 
 import json
