@@ -20,6 +20,16 @@ class File :
 	def isready(self):
 		return os.path.exists(self.path) 
 	def meta(self,**_args):
+		"""
+		This function will return the schema for a given file
+		"""
+		_path = self.path if 'path' not in _args else _args['path']
+		if os.path.exists(_path):
+			_hdf = pd.read_csv(_path,sep=self.delimiter,nrows=10)
+			_names = _hdf.dtypes.index.tolist()[1:]
+			_types = [_x.name for _x in _hdf.dtypes.tolist()[1:]]
+			return pd.DataFrame({"name":_names,"type":_types}).to_dict(orient='records')
+
 		return []
 	
 class Reader (File):
@@ -35,8 +45,12 @@ class Reader (File):
 		_path = self.path if 'path' not in args else args['path']
 		_delimiter = self.delimiter if 'delimiter' not in args else args['delimiter']
 		_df =  pd.read_csv(_path,delimiter=_delimiter)
-		if 'query' in args :
+		_query = None
+		if 'sql' in args :
+			_query = args['sql']
+		elif 'query' in args :
 			_query = args['query']
+		if _query :
 			_df = _df.query(_query)
 		return _df
 	def stream(self,**args):
